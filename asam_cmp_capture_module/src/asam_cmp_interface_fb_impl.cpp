@@ -82,7 +82,7 @@ void AsamCmpInterfaceFbImpl::updatePayloadTypeInternal()
 {
     Int newType = objPtr.getPropertyValue("PayloadType");
 
-    if (newType < 0 || newType > payloadTypeToAsamPayloadType.size())
+    if (newType < 0 || (size_t)newType > payloadTypeToAsamPayloadType.size())
     {
         objPtr.setPropertyValue("PayloadType", asamPayloadTypeToPayloadType.at(payloadType.getRawPayloadType()));
     }
@@ -95,12 +95,14 @@ void AsamCmpInterfaceFbImpl::updatePayloadTypeInternal()
 void AsamCmpInterfaceFbImpl::addStreamInternal()
 {
     std::cout << objPtr.getPropertyValue("PayloadType") << std::endl;
-    AsamCmpStreamInit init{createdStreams,
+    auto id = streamIdManager->getFirstUnusedId();
+    AsamCmpStreamInit init{id,
                            payloadType,
                            streamIdManager};
 
-    StringPtr fbId = fmt::format("asam_cmp_stream_{}", createdStreams++);
+    StringPtr fbId = fmt::format("asam_cmp_stream_{}", id);
     functionBlocks.addItem(createWithImplementation<IFunctionBlock, AsamCmpStreamFbImpl>(context, functionBlocks, fbId, init));
+    streamIdManager->addId(id);
 }
 
 void AsamCmpInterfaceFbImpl::removeStreamInternal(size_t nInd)

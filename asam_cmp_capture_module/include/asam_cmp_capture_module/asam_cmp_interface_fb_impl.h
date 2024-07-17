@@ -58,7 +58,6 @@ private:
     uint32_t id;
     ASAM::CMP::PayloadType payloadType;
 
-    inline static size_t createdStreams = 0;
     //temporary solution once not full list of types is immplemented
     inline static std::map<int, int> payloadTypeToAsamPayloadType = {{0, 0}, {1, 1}, {2, 2}, {3, 7}};
     inline static std::map<int, int> asamPayloadTypeToPayloadType = {{0, 0}, {1, 1}, {2, 2}, {7, 3}};
