@@ -1,5 +1,5 @@
 #include <asam_cmp_capture_module/module_dll.h>
-#include <asam_cmp_capture_module/capture_module_impl.h>
+#include <asam_cmp_capture_module/capture_module.h>
 
 #include <opendaq/module_factory.h>
 
