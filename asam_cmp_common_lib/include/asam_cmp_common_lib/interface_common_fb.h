@@ -19,7 +19,7 @@
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
 
-#include <asam_cmp/encoder.h>
+#include <asam_cmp/payload_type.h>
 #include <asam_cmp_common_lib/id_manager.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
@@ -33,6 +33,9 @@ struct InterfaceCommonInit
 
 class InterfaceCommonFb : public FunctionBlock
 {
+private:
+    using PayloadType = ASAM::CMP::PayloadType;
+
 public:
     explicit InterfaceCommonFb(const ContextPtr& ctx,
                                const ComponentPtr& parent,
@@ -62,15 +65,17 @@ protected:
     InterfaceIdManagerPtr interfaceIdManager;
     StreamIdManagerPtr streamIdManager;
     uint32_t interfaceId;
-    ASAM::CMP::PayloadType payloadType;
+    PayloadType payloadType;
 
     std::atomic_bool isUpdating;
     std::atomic_bool needsPropertyChanged;
     std::atomic_bool isInternalPropertyUpdate;
 
     // temporary solution once not full list of types is immplemented (or not in case values missmatch due to reserved values)
-    inline static std::map<int, int> payloadTypeToAsamPayloadType = {{0, 0}, {1, 1}, {2, 2}, {3, 7}};
-    inline static std::map<int, int> asamPayloadTypeToPayloadType = {{0, 0}, {1, 1}, {2, 2}, {7, 3}};
+    inline static std::map<int, int> payloadTypeToAsamPayloadType = {
+        {0, PayloadType::invalid}, {1, PayloadType::can}, {2, PayloadType::canFd}, {3, PayloadType::analog}};
+    inline static std::map<int, int> asamPayloadTypeToPayloadType = {
+        {PayloadType::invalid, 0}, {PayloadType::can, 1}, {PayloadType::canFd, 2}, {PayloadType::analog, 3}};
 
 private:
     size_t createdStreams;

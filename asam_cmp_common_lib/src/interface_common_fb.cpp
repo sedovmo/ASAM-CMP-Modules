@@ -85,12 +85,12 @@ void InterfaceCommonFb::updatePayloadTypeInternal()
     if (newType < 0 || static_cast<size_t>(newType) > payloadTypeToAsamPayloadType.size())
     {
         isInternalPropertyUpdate = true;
-        objPtr.setPropertyValue("PayloadType", asamPayloadTypeToPayloadType.at(payloadType.getRawPayloadType()));
+        objPtr.setPropertyValue("PayloadType", asamPayloadTypeToPayloadType.at(payloadType.getType()));
         isInternalPropertyUpdate = false;
     }
     else
     {
-        payloadType.setRawPayloadType(payloadTypeToAsamPayloadType.at(newType));
+        payloadType.setType(payloadTypeToAsamPayloadType.at(newType));
         for (const auto& fb : functionBlocks.getItems())
         {
             fb.as<IStreamCommon>(true)->setPayloadType(payloadType);
