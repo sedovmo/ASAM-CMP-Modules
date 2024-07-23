@@ -19,6 +19,7 @@
 #include <asam_cmp/decoder.h>
 #include <opendaq/function_block_impl.h>
 
+#include <asam_cmp_data_sink/calls_multi_map.h>
 #include <asam_cmp_data_sink/common.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
@@ -50,6 +51,8 @@ private:
     pcpp::PcapLiveDeviceList& pcapDeviceList{pcpp::PcapLiveDeviceList::getInstance()};
     pcpp::PcapLiveDevice* pcapLiveDevice{nullptr};
     ASAM::CMP::Decoder decoder;
+
+    CallsMultiMap callsMap;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

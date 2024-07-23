@@ -18,8 +18,9 @@
 #include <asam_cmp/device_status.h>
 #include <opendaq/function_block_impl.h>
 
-#include <asam_cmp_common_lib/id_manager.h>
 #include <asam_cmp_common_lib/capture_common_fb.h>
+#include <asam_cmp_common_lib/id_manager.h>
+#include <asam_cmp_data_sink/calls_multi_map.h>
 #include <asam_cmp_data_sink/common.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
@@ -27,11 +28,12 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class CaptureFb final : public asam_cmp_common_lib::CaptureCommonFb
 {
 public:
-    explicit CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId);
+    explicit CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, CallsMultiMap& callsMap);
     explicit CaptureFb(const ContextPtr& ctx,
-                               const ComponentPtr& parent,
-                               const StringPtr& localId,
-                               ASAM::CMP::DeviceStatus&& deviceStatus);
+                       const ComponentPtr& parent,
+                       const StringPtr& localId,
+                       CallsMultiMap& callsMap,
+                       ASAM::CMP::DeviceStatus&& deviceStatus);
     ~CaptureFb() override = default;
 
 protected:
@@ -42,6 +44,7 @@ private:
 
 private:
     ASAM::CMP::DeviceStatus deviceStatus;
+    CallsMultiMap& callsMap;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

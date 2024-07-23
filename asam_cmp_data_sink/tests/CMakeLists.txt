@@ -8,6 +8,7 @@ set(TEST_SOURCES test_app.cpp
                  test_capture_module.cpp
                  test_interface.cpp
                  test_stream.cpp
+                 test_calls_multi_map.cpp
 )
 
 add_executable(${TEST_APP} ${TEST_SOURCES}

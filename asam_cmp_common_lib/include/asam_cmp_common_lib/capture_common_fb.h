@@ -17,8 +17,8 @@
 #pragma once
 #include <opendaq/function_block_impl.h>
 
-#include <asam_cmp_common_lib/id_manager.h>
 #include <asam_cmp_common_lib/common.h>
+#include <asam_cmp_common_lib/id_manager.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
@@ -32,7 +32,7 @@ public:
 
 protected:
     template <class Impl, typename... Params>
-    void addInterfaceWithParams(uint32_t interfaceId, Params&&... params);
+    FunctionBlockPtr addInterfaceWithParams(uint32_t interfaceId, Params&&... params);
     virtual void addInterfaceInternal() = 0;
     virtual void updateDeviceId();
     virtual void removeInterfaceInternal(size_t nInd);
@@ -47,7 +47,7 @@ protected:
 };
 
 template <class Impl, typename... Params>
-void CaptureCommonFb::addInterfaceWithParams(uint32_t interfaceId, Params&&... params)
+FunctionBlockPtr CaptureCommonFb::addInterfaceWithParams(uint32_t interfaceId, Params&&... params)
 {
     InterfaceCommonInit init{interfaceId, &interfaceIdManager, &streamIdManager};
 
@@ -55,6 +55,8 @@ void CaptureCommonFb::addInterfaceWithParams(uint32_t interfaceId, Params&&... p
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);
     functionBlocks.addItem(newFb);
     interfaceIdManager.addId(interfaceId);
+
+    return newFb;
 }
 
 END_NAMESPACE_ASAM_CMP_COMMON

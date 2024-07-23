@@ -1,17 +1,16 @@
 #include <coreobjects/argument_info_factory.h>
 #include <coreobjects/callable_info_factory.h>
 
-#include <asam_cmp_data_sink/data_sink_fb.h>
 #include <asam_cmp_data_sink/capture_fb.h>
+#include <asam_cmp_data_sink/data_sink_fb.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-DataSinkFb::DataSinkFb(const ContextPtr& ctx,
-                                             const ComponentPtr& parent,
-                                             const StringPtr& localId,
-                                             StatusMt statusMt)
+DataSinkFb::DataSinkFb(
+    const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt, CallsMultiMap& callsMap)
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , status(statusMt)
+    , callsMap(callsMap)
 {
     initProperties();
 }
@@ -25,7 +24,8 @@ void DataSinkFb::addCaptureModuleFromStatus(int index)
 {
     auto deviceStatus = status.getDeviceStatus(index);
     const StringPtr fbId = fmt::format("capture_module_{}", captureModuleId);
-    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, std::move(deviceStatus));
+    const auto newFb =
+        createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, callsMap, std::move(deviceStatus));
     functionBlocks.addItem(newFb);
     ++captureModuleId;
 }
@@ -33,7 +33,7 @@ void DataSinkFb::addCaptureModuleFromStatus(int index)
 void DataSinkFb::addCaptureModuleEmpty()
 {
     const StringPtr fbId = fmt::format("capture_module_{}", captureModuleId);
-    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId);
+    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, callsMap);
     functionBlocks.addItem(newFb);
     ++captureModuleId;
 }

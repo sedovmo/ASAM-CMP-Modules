@@ -18,7 +18,7 @@
 #include <asam_cmp/encoder.h>
 #include <asam_cmp_capture_module/common.h>
 #include <asam_cmp_common_lib/id_manager.h>
-#include <asam_cmp_common_lib/stream_common_fb.h>
+#include <asam_cmp_common_lib/stream_common_fb_impl.h>
 #include <asam_cmp_capture_module/encoder_bank.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/function_block_impl.h>
@@ -30,13 +30,12 @@ class StreamFb final : public asam_cmp_common_lib::StreamCommonFb
 {
 public:
     explicit StreamFb(const ContextPtr& ctx,
-                                    const ComponentPtr& parent,
-                                    const StringPtr& localId,
-                                    const asam_cmp_common_lib::StreamCommonInit& init);
+                      const ComponentPtr& parent,
+                      const StringPtr& localId,
+                      const asam_cmp_common_lib::StreamCommonInit& init);
     ~StreamFb() override = default;
 
 private:
-
     void createInputPort();
 
 private:

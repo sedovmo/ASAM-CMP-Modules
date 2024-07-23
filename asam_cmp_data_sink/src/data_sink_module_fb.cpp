@@ -64,7 +64,7 @@ void DataSinkModuleFbImpl::createFbs()
     auto statusMt = functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->getStatusMt();
 
     const StringPtr dataSinkId = "asam_cmp_data_sink";
-    newFb = createWithImplementation<IFunctionBlock, DataSinkFb>(context, functionBlocks, dataSinkId, statusMt);
+    newFb = createWithImplementation<IFunctionBlock, DataSinkFb>(context, functionBlocks, dataSinkId, statusMt, callsMap);
     functionBlocks.addItem(newFb);
 }
 
@@ -117,6 +117,7 @@ void DataSinkModuleFbImpl::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLi
         switch (acPacket->getMessageType())
         {
             case ASAM::CMP::CmpHeader::MessageType::data:
+                callsMap.ProcessPacket(acPacket);
                 break;
             case ASAM::CMP::CmpHeader::MessageType::status:
                 functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->processStatusPacket(acPacket);

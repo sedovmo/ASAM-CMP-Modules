@@ -2,7 +2,6 @@ project(asam_cmp_common_lib LANGUAGES CXX VERSION 1.0.0)
 
 set(SRC_Cpp capture_common_fb.cpp
             interface_common_fb.cpp
-            stream_common_fb.cpp
             ethernet_pcpp_impl.cpp
 )
 
@@ -10,7 +9,7 @@ set(SRC_PublicHeaders common.h
                       id_manager.h
                       capture_common_fb.h
                       interface_common_fb.h
-                      stream_common_fb.h
+                      stream_common_fb_impl.h
                       ethernet_pcpp_impl.h
                       ethernet_itf.h
 )
