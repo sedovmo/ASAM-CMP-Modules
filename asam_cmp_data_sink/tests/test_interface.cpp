@@ -10,10 +10,10 @@
 using namespace daq;
 using namespace testing;
 
-class AsamCmpInterfaceTest : public testing::Test
+class AsamCmpInterfaceFixture : public ::testing::Test
 {
 protected:
-    AsamCmpInterfaceTest()
+    AsamCmpInterfaceFixture()
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
@@ -31,12 +31,12 @@ protected:
     modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
 };
 
-TEST_F(AsamCmpInterfaceTest, CreateInterface)
+TEST_F(AsamCmpInterfaceFixture, NotNull)
 {
     ASSERT_NE(interfaceFb, nullptr);
 }
 
-TEST_F(AsamCmpInterfaceTest, CaptureModuleProperties)
+TEST_F(AsamCmpInterfaceFixture, CaptureModuleProperties)
 {
 
     ASSERT_TRUE(interfaceFb.hasProperty("InterfaceId"));
@@ -45,29 +45,43 @@ TEST_F(AsamCmpInterfaceTest, CaptureModuleProperties)
     ASSERT_TRUE(interfaceFb.hasProperty("RemoveStream"));
 }
 
-TEST_F(AsamCmpInterfaceTest, TestSetId)
+TEST_F(AsamCmpInterfaceFixture, TestSetId)
 {
-    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
+    ProcedurePtr createProc = captureModuleFb.getPropertyValue("AddInterface");
     createProc();
 
-    FunctionBlockPtr itf1 = captureFb.getFunctionBlocks().getItemAt(0), itf2 = captureFb.getFunctionBlocks().getItemAt(1);
+    ASSERT_EQ(captureModuleFb.getFunctionBlocks().getCount(), 2);
 
-    uint32_t id1 = itf1.getPropertyValue("InterfaceId"), id2 = itf2.getPropertyValue("InterfaceId");
+    FunctionBlockPtr interfaceFb2 = captureModuleFb.getFunctionBlocks().getItemAt(1);
+
+    uint32_t id1 = interfaceFb.getPropertyValue("InterfaceId"), id2 = interfaceFb2.getPropertyValue("InterfaceId");
     ASSERT_NE(id1, id2);
 
-    itf2.setPropertyValue("InterfaceId", id1);
-    ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2);
+    interfaceFb2.setPropertyValue("InterfaceId", id1);
+    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2);
 
-    itf2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
-    ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2);
+    interfaceFb2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
+    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2);
 
-    itf2.setPropertyValue("InterfaceId", id2 + 1);
+    interfaceFb2.setPropertyValue("InterfaceId", id2 + 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2 + 1);
+    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
 
-    itf2.setPropertyValue("InterfaceId", id1);
-    ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2 + 1);
+    interfaceFb2.setPropertyValue("InterfaceId", id1);
+    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
 
-    itf2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
-    ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2 + 1);
+    interfaceFb2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
+    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
+}
+
+TEST_F(AsamCmpInterfaceFixture, AddStream)
+{
+    ProcedurePtr createProc = interfaceFb.getPropertyValue("AddStream");
+    interfaceFb.setPropertyValue("PayloadType", 1);
+    createProc();
+    createProc();
+
+    auto s1 = interfaceFb.getFunctionBlocks().getItemAt(0), s2 = interfaceFb.getFunctionBlocks().getItemAt(1);
+
+    ASSERT_NE(s1.getPropertyValue("StreamId"), s2.getPropertyValue("StreamId"));
 }

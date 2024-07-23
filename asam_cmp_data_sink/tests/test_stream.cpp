@@ -30,15 +30,3 @@ protected:
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interface;
 };
-
-TEST_F(AsamCmpStreamTest, CreateStream)
-{
-    ProcedurePtr createProc = interface.getPropertyValue("AddStream");
-    interface.setPropertyValue("PayloadType", 1);
-    createProc();
-    createProc();
-
-    auto s1 = interface.getFunctionBlocks().getItemAt(0), s2 = interface.getFunctionBlocks().getItemAt(1);
-
-    ASSERT_NE(s1.getPropertyValue("StreamId"), s2.getPropertyValue("StreamId"));
-}
