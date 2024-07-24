@@ -26,17 +26,25 @@ BEGIN_NAMESPACE_ASAM_CMP_COMMON
 struct StreamCommonInit
 {
     const uint32_t id;
-    const ASAM::CMP::PayloadType& payloadType;
+    ASAM::CMP::PayloadType payloadType;
     const StreamIdManagerPtr streamIdManager;
 };
 
+DECLARE_OPENDAQ_INTERFACE(IStreamCommon, IBaseObject)
+{
+    virtual void setPayloadType(ASAM::CMP::PayloadType type) = 0;
+};
+
 template <typename... Interfaces>
-class StreamCommonFbImpl : public FunctionBlockImpl<IFunctionBlock, Interfaces...>
+class StreamCommonFbImpl : public FunctionBlockImpl<IFunctionBlock, IStreamCommon, Interfaces...>
 {
 public:
     explicit StreamCommonFbImpl(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const StreamCommonInit& init);
     ~StreamCommonFbImpl() override = default;
     static FunctionBlockTypePtr CreateType();
+
+public: // IStreamCommon
+    void setPayloadType(ASAM::CMP::PayloadType type) override;
 
 protected:
     virtual void updateStreamIdInternal();
@@ -49,7 +57,7 @@ protected:
 
 private:
     StreamIdManagerPtr streamIdManager;
-    const ASAM::CMP::PayloadType& payloadType;
+    ASAM::CMP::PayloadType payloadType;
 };
 
 using StreamCommonFb = StreamCommonFbImpl<>;
@@ -71,6 +79,12 @@ template <typename... Interfaces>
 FunctionBlockTypePtr StreamCommonFbImpl<Interfaces...>::CreateType()
 {
     return FunctionBlockType("asam_cmp_stream", "AsamCmpStream", "Asam CMP Stream");
+}
+
+template <typename... Interfaces>
+void StreamCommonFbImpl<Interfaces...>::setPayloadType(ASAM::CMP::PayloadType type)
+{
+    payloadType = type;
 }
 
 template <typename... Interfaces>
