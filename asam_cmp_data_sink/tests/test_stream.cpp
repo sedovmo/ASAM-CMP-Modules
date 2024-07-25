@@ -17,20 +17,19 @@ protected:
         auto logger = Logger();
         createModule(&module, Context(Scheduler(logger), logger, nullptr, nullptr, nullptr));
 
-        FunctionBlockPtr fb;
         auto fbs = module.getAvailableFunctionBlockTypes();
         if (fbs.hasKey("asam_cmp_capture"))
         {
-            fb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
-            captureModule = fb.getFunctionBlocks().getItemAt(0);
+            rootFb = module.createFunctionBlock("asam_cmp_capture", nullptr, "id");
+            captureModule = rootFb.getFunctionBlocks().getItemAt(0);
         }
         else
         {
-            fb = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
-            auto dataSink = fb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_data_sink")))[0];
+            rootFb = module.createFunctionBlock("asam_cmp_data_sink_module", nullptr, "id");
+            dataSink = rootFb.getFunctionBlocks(search::Recursive(search::LocalId("asam_cmp_data_sink")))[0];
             dataSink.getPropertyValue("AddCaptureModuleEmpty").execute();
         }
-        captureModule = fb.getFunctionBlocks(search::Recursive(search::LocalId("capture_module_0")))[0];
+        captureModule = rootFb.getFunctionBlocks(search::Recursive(search::LocalId("capture_module_0")))[0];
 
         ProcedurePtr createProc = captureModule.getPropertyValue("AddInterface");
         createProc();
@@ -40,6 +39,7 @@ protected:
 protected:
     ModulePtr module;
     FunctionBlockPtr rootFb;
+    FunctionBlockPtr dataSink;
     FunctionBlockPtr captureModule;
     FunctionBlockPtr interface;
 };

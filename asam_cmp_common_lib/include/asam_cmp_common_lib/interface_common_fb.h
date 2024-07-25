@@ -35,15 +35,15 @@ class InterfaceCommonFb : public FunctionBlock
 {
 public:
     explicit InterfaceCommonFb(const ContextPtr& ctx,
-                                   const ComponentPtr& parent,
-                                   const StringPtr& localId,
-                                   const InterfaceCommonInit& init);
+                               const ComponentPtr& parent,
+                               const StringPtr& localId,
+                               const InterfaceCommonInit& init);
     ~InterfaceCommonFb() override = default;
     static FunctionBlockTypePtr CreateType();
 
 protected:
     template <class Impl, typename... Params>
-    void addStreamWithParams(uint8_t streamId, Params&&... params);
+    FunctionBlockPtr addStreamWithParams(uint8_t streamId, Params&&... params);
     virtual void updateInterfaceIdInternal();
     virtual void updatePayloadTypeInternal();
     virtual void addStreamInternal() = 0;
@@ -64,7 +64,7 @@ protected:
 };
 
 template <class Impl, typename... Params>
-void InterfaceCommonFb::addStreamWithParams(uint8_t streamId, Params&&... params)
+FunctionBlockPtr InterfaceCommonFb::addStreamWithParams(uint8_t streamId, Params&&... params)
 {
     StreamCommonInit init{streamId, payloadType, streamIdManager};
 
@@ -72,6 +72,8 @@ void InterfaceCommonFb::addStreamWithParams(uint8_t streamId, Params&&... params
     auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);
     functionBlocks.addItem(newFb);
     streamIdManager->addId(streamId);
+
+    return newFb;
 }
 
 END_NAMESPACE_ASAM_CMP_COMMON

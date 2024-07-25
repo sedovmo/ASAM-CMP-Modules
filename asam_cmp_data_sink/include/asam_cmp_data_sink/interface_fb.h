@@ -16,12 +16,9 @@
 
 #pragma once
 #include <asam_cmp/interface_status.h>
-#include <asam_cmp_common_lib/id_manager.h>
-#include <asam_cmp_common_lib/interface_common_fb.h>
-#include <asam_cmp_data_sink/common.h>
 
-#include <opendaq/context_factory.h>
-#include <opendaq/function_block_impl.h>
+#include <asam_cmp_common_lib/interface_common_fb.h>
+#include <asam_cmp_data_sink/calls_multi_map.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
@@ -31,23 +28,30 @@ public:
     explicit InterfaceFb(const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
-                         const asam_cmp_common_lib::InterfaceCommonInit& init);
+                         const asam_cmp_common_lib::InterfaceCommonInit& init,
+                         const uint16_t deviceId,
+                         CallsMultiMap& callsMap);
     explicit InterfaceFb(const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
+                         const uint16_t deviceId,
+                         CallsMultiMap& callsMap,
                          ASAM::CMP::InterfaceStatus&& ifStatus);
 
     ~InterfaceFb() override = default;
 
 protected:
     void addStreamInternal() override;
+    void removeStreamInternal(size_t nInd) override;
 
 private:
     void createFbs();
 
 private:
     ASAM::CMP::InterfaceStatus interfaceStatus;
+    CallsMultiMap& callsMap;
+    const uint16_t deviceId;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

@@ -3,13 +3,14 @@
 #include <coretypes/listobject_factory.h>
 
 #include <asam_cmp_common_lib/interface_common_fb.h>
+#include <asam_cmp_common_lib/stream_common_fb_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
 InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
-                                             const ComponentPtr& parent,
-                                             const StringPtr& localId,
-                                             const InterfaceCommonInit& init)
+                                     const ComponentPtr& parent,
+                                     const StringPtr& localId,
+                                     const InterfaceCommonInit& init)
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , interfaceIdManager(init.interfaceIdManager)
     , streamIdManager(init.streamIdManager)
@@ -81,6 +82,10 @@ void InterfaceCommonFb::updatePayloadTypeInternal()
     else
     {
         payloadType.setRawPayloadType(payloadTypeToAsamPayloadType.at(newType));
+        for (const auto& fb : functionBlocks.getItems())
+        {
+            fb.as<IStreamCommon>(true)->setPayloadType(payloadType);
+        }
     }
 }
 

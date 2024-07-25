@@ -18,15 +18,17 @@
 #include <asam_cmp/status.h>
 #include <opendaq/function_block_impl.h>
 
-#include <asam_cmp_data_sink/status_handler.h>
+#include <asam_cmp_data_sink/calls_multi_map.h>
 #include <asam_cmp_data_sink/common.h>
+#include <asam_cmp_data_sink/status_handler.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
 class DataSinkFb final : public FunctionBlock
 {
 public:
-    explicit DataSinkFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt);
+    explicit DataSinkFb(
+        const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt, CallsMultiMap& callsMap);
     ~DataSinkFb() override = default;
 
     static FunctionBlockTypePtr CreateType();
@@ -40,6 +42,7 @@ private:
 private:
     size_t captureModuleId{0};
     StatusMt status;
+    CallsMultiMap& callsMap;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

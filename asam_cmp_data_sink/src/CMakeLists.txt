@@ -13,9 +13,11 @@ set(SRC_Cpp module_dll.cpp
 set(SRC_PublicHeaders module_dll.h
                       common.h
                       data_sink_module.h
+                      calls_multi_map.h
                       data_sink_module_fb.h
-                      status_fb_impl.h
+                      data_handler.h
                       status_handler.h
+                      status_fb_impl.h
                       data_sink_fb.h
                       capture_fb.h
                       interface_fb.h

@@ -19,6 +19,7 @@
 #include <asam_cmp/decoder.h>
 #include <asam_cmp_common_lib/network_manager_fb.h>
 
+#include <asam_cmp_data_sink/calls_multi_map.h>
 #include <asam_cmp_data_sink/common.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
@@ -46,6 +47,8 @@ private:
 
 private:
     ASAM::CMP::Decoder decoder;
+
+    CallsMultiMap callsMap;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

@@ -15,20 +15,25 @@
  */
 
 #pragma once
-#include <asam_cmp/encoder.h>
-#include <asam_cmp/payload_type.h>
-#include <opendaq/context_factory.h>
-#include <opendaq/function_block_impl.h>
+#include <asam_cmp/packet.h>
+
+#include <asam_cmp_common_lib/stream_common_fb_impl.h>
+#include <asam_cmp_data_sink/data_handler.h>
 #include <asam_cmp_data_sink/common.h>
-#include <asam_cmp_common_lib/stream_common_fb.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-class StreamFb final : public asam_cmp_common_lib::StreamCommonFb
-{ 
+class StreamFb final : public asam_cmp_common_lib::StreamCommonFbImpl<IDataHandler>
+{
 public:
-    explicit StreamFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, const asam_cmp_common_lib::StreamCommonInit& init);
+    explicit StreamFb(const ContextPtr& ctx,
+                      const ComponentPtr& parent,
+                      const StringPtr& localId,
+                      const asam_cmp_common_lib::StreamCommonInit& init);
     ~StreamFb() override = default;
+
+protected:
+    void processData(const std::shared_ptr<ASAM::CMP::Packet>& packet) override;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
