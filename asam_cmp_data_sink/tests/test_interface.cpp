@@ -1,5 +1,5 @@
-#include <asam_cmp_data_sink/common.h>
 #include <asam_cmp_data_sink/capture_fb.h>
+#include <asam_cmp_data_sink/common.h>
 
 #include <gtest/gtest.h>
 #include <opendaq/context_factory.h>
@@ -38,7 +38,6 @@ TEST_F(AsamCmpInterfaceFixture, NotNull)
 
 TEST_F(AsamCmpInterfaceFixture, CaptureModuleProperties)
 {
-
     ASSERT_TRUE(interfaceFb.hasProperty("InterfaceId"));
     ASSERT_TRUE(interfaceFb.hasProperty("PayloadType"));
     ASSERT_TRUE(interfaceFb.hasProperty("AddStream"));
@@ -47,12 +46,12 @@ TEST_F(AsamCmpInterfaceFixture, CaptureModuleProperties)
 
 TEST_F(AsamCmpInterfaceFixture, TestSetId)
 {
-    ProcedurePtr createProc = captureModuleFb.getPropertyValue("AddInterface");
+    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
     createProc();
 
-    ASSERT_EQ(captureModuleFb.getFunctionBlocks().getCount(), 2);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 2);
 
-    FunctionBlockPtr interfaceFb2 = captureModuleFb.getFunctionBlocks().getItemAt(1);
+    FunctionBlockPtr interfaceFb2 = captureFb.getFunctionBlocks().getItemAt(1);
 
     uint32_t id1 = interfaceFb.getPropertyValue("InterfaceId"), id2 = interfaceFb2.getPropertyValue("InterfaceId");
     ASSERT_NE(id1, id2);
