@@ -40,10 +40,10 @@ protected:
 TEST_F(CallsMultiMapTest, ProcessPacket)
 {
     DataHandlerMock handler;
-    callsMap.Insert(deviceId, interfaceId, streamId, &handler);
+    callsMap.insert(deviceId, interfaceId, streamId, &handler);
 
     EXPECT_CALL(handler, processData(packet));
-    callsMap.ProcessPacket(packet);
+    callsMap.processPacket(packet);
 }
 
 TEST_F(CallsMultiMapTest, Process2Packets)
@@ -51,15 +51,15 @@ TEST_F(CallsMultiMapTest, Process2Packets)
     constexpr int16_t deviceId2 = deviceId + 1;
 
     DataHandlerMock handler1, handler2;
-    callsMap.Insert(deviceId, interfaceId, streamId, &handler1);
-    callsMap.Insert(deviceId2, interfaceId, streamId, &handler2);
+    callsMap.insert(deviceId, interfaceId, streamId, &handler1);
+    callsMap.insert(deviceId2, interfaceId, streamId, &handler2);
 
     EXPECT_CALL(handler1, processData(packet));
-    callsMap.ProcessPacket(packet);
+    callsMap.processPacket(packet);
 
     packet->setDeviceId(deviceId2);
     EXPECT_CALL(handler2, processData(packet));
-    callsMap.ProcessPacket(packet);
+    callsMap.processPacket(packet);
 }
 
 TEST_F(CallsMultiMapTest, ProcessWrongPacket)
@@ -67,34 +67,34 @@ TEST_F(CallsMultiMapTest, ProcessWrongPacket)
     constexpr uint32_t wrongInterfaceId = interfaceId + 1;
 
     DataHandlerMock handler;
-    callsMap.Insert(deviceId, interfaceId, streamId, &handler);
+    callsMap.insert(deviceId, interfaceId, streamId, &handler);
 
     packet->setInterfaceId(wrongInterfaceId);
 
     EXPECT_CALL(handler, processData(packet)).Times(0);
-    callsMap.ProcessPacket(packet);
+    callsMap.processPacket(packet);
 }
 
 TEST_F(CallsMultiMapTest, SamePacketMultipleHandler)
 {
     DataHandlerMock handler1, handler2;
-    callsMap.Insert(deviceId, interfaceId, streamId, &handler1);
-    callsMap.Insert(deviceId, interfaceId, streamId, &handler2);
+    callsMap.insert(deviceId, interfaceId, streamId, &handler1);
+    callsMap.insert(deviceId, interfaceId, streamId, &handler2);
 
     EXPECT_CALL(handler1, processData(packet));
     EXPECT_CALL(handler2, processData(packet));
-    callsMap.ProcessPacket(packet);
+    callsMap.processPacket(packet);
 }
 
 TEST_F(CallsMultiMapTest, Erase)
 {
     DataHandlerMock handler1, handler2;
-    callsMap.Insert(deviceId, interfaceId, streamId, &handler1);
-    callsMap.Insert(deviceId, interfaceId, streamId, &handler2);
+    callsMap.insert(deviceId, interfaceId, streamId, &handler1);
+    callsMap.insert(deviceId, interfaceId, streamId, &handler2);
 
-    callsMap.Erase(deviceId, interfaceId, streamId, &handler1);
+    callsMap.erase(deviceId, interfaceId, streamId, &handler1);
 
     EXPECT_CALL(handler1, processData(packet)).Times(0);
     EXPECT_CALL(handler2, processData(packet));
-    callsMap.ProcessPacket(packet);
+    callsMap.processPacket(packet);
 }

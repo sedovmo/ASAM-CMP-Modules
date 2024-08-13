@@ -11,14 +11,14 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class CallsMultiMap final
 {
 public:
-    auto Insert(uint16_t deviceId, uint32_t interfaceId, uint8_t streamId, IDataHandler* handler)
+    auto insert(uint16_t deviceId, uint32_t interfaceId, uint8_t streamId, IDataHandler* handler)
     {
         std::scoped_lock lock(callMapMutex);
 
         return callsMap.insert({{deviceId, interfaceId, streamId}, handler});
     }
 
-    void Erase(uint16_t deviceId, uint32_t interfaceId, uint8_t streamId, IDataHandler* handler)
+    void erase(uint16_t deviceId, uint32_t interfaceId, uint8_t streamId, IDataHandler* handler)
     {
         std::scoped_lock lock(callMapMutex);
 
@@ -27,7 +27,7 @@ public:
         callsMap.erase(it);
     }
 
-    void ProcessPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet)
+    void processPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet)
     {
         std::scoped_lock lock(callMapMutex);
 
