@@ -7,6 +7,10 @@
 #include <asam_cmp_data_sink/status_fb_impl.h>
 
 #include <asam_cmp_common_lib/ethernet_pcpp_impl.h>
+#include <SystemUtils.h>
+
+
+#include <iostream>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
@@ -96,7 +100,7 @@ std::vector<std::shared_ptr<ASAM::CMP::Packet>> DataSinkModuleFb::decode(pcpp::R
     pcpp::Packet parsedPacket(packet);
     pcpp::EthLayer* ethLayer = static_cast<pcpp::EthLayer*>(parsedPacket.getLayerOfType(pcpp::Ethernet));
     assert(ethLayer->getDestMac() == asam_cmp_common_lib::EthernetPcppImpl::broadcastMac);
-    assert(ethLayer->getEthHeader()->etherType == asam_cmp_common_lib::EthernetPcppImpl::asamCmpEtherType);
+    assert(pcpp::netToHost16(ethLayer->getEthHeader()->etherType) == asam_cmp_common_lib::EthernetPcppImpl::asamCmpEtherType);
 
     return decoder.decode(ethLayer->getLayerPayload(), ethLayer->getLayerPayloadSize());
 }
