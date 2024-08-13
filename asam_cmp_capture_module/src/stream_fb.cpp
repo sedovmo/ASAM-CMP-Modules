@@ -223,7 +223,7 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet, bool isCanFd)
             payload.setMessageType(ASAM::CMP::CmpHeader::MessageType::data);
             payload.setType(isCanFd ? ASAM::CMP::PayloadType::canFd : ASAM::CMP::PayloadType::can);
             packets.back().setPayload(payload);
-            packets.back().setTimestamp(*rawTimeBuffer);
+            packets.back().setTimestamp((*rawTimeBuffer) * 1000);
             if (isCanFd)
             {
                 static_cast<ASAM::CMP::CanFdPayload&>(packets.back().getPayload()).setData(canData->data, canData->length);
