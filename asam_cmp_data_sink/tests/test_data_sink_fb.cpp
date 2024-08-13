@@ -164,7 +164,13 @@ TEST_F(DataSinkFbFixture, RemoveCaptureModule)
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0);
     ProcedurePtr addFunc = funcBlock.getPropertyValue("AddCaptureModuleEmpty");
     addFunc();
+    auto captureFb = funcBlock.getFunctionBlocks().getItemAt(0);
+    captureFb.getPropertyValue("AddInterface").execute();
+    auto interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
+    interfaceFb.getPropertyValue("AddStream").execute();
+
     ProcedurePtr removeFunc = funcBlock.getPropertyValue("RemoveCaptureModule");
     removeFunc(0);
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0);
+    ASSERT_EQ(callsMultiMap.size(), 0);
 }

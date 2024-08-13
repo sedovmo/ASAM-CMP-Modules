@@ -71,7 +71,7 @@ TEST_F(AsamCmpInterfaceFixture, InterfaceId)
     ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
 }
 
-TEST_F(AsamCmpInterfaceFixture, AddStream)
+TEST_F(AsamCmpInterfaceFixture, AddRemoveStream)
 {
     ProcedurePtr addStream = interfaceFb.getPropertyValue("AddStream");
     interfaceFb.setPropertyValue("PayloadType", 1);
@@ -81,4 +81,8 @@ TEST_F(AsamCmpInterfaceFixture, AddStream)
     auto s1 = interfaceFb.getFunctionBlocks().getItemAt(0), s2 = interfaceFb.getFunctionBlocks().getItemAt(1);
 
     ASSERT_NE(s1.getPropertyValue("StreamId"), s2.getPropertyValue("StreamId"));
+
+    interfaceFb.getPropertyValue("RemoveStream").execute(0);
+
+    ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 1);
 }

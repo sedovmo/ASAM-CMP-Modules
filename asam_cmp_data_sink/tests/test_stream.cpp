@@ -60,6 +60,7 @@ protected:
         captureFb.setPropertyValue("DeviceId", deviceId);
         interfaceFb.setPropertyValue("InterfaceId", interfaceId);
         funcBlock.setPropertyValue("StreamId", streamId);
+        interfaceFb.setPropertyValue("PayloadType", 1);
 
         CanPayload canPayload;
         canPayload.setData(reinterpret_cast<const uint8_t*>(&data), sizeof(data));
@@ -131,8 +132,6 @@ TEST_F(AsamCmpStreamFixture, ReceivePacketWithWrongPayloadType)
 
 TEST_F(AsamCmpStreamFixture, ReadOutputSignal)
 {
-    interfaceFb.setPropertyValue("PayloadType", 1);
-
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
 
@@ -154,7 +153,6 @@ TEST_F(AsamCmpStreamFixture, ReadOutputSignal)
 TEST_F(AsamCmpStreamFixture, ChangeStreamId)
 {
     constexpr Int newStreamId = 100;
-    interfaceFb.setPropertyValue("PayloadType", 1);
     funcBlock.setPropertyValue("StreamId", newStreamId);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
@@ -173,7 +171,6 @@ TEST_F(AsamCmpStreamFixture, ChangeStreamId)
 TEST_F(AsamCmpStreamFixture, ChangeInterfaceId)
 {
     constexpr Int newInterfaceId = 100;
-    interfaceFb.setPropertyValue("PayloadType", 1);
     interfaceFb.setPropertyValue("InterfaceId", newInterfaceId);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
@@ -192,7 +189,6 @@ TEST_F(AsamCmpStreamFixture, ChangeInterfaceId)
 TEST_F(AsamCmpStreamFixture, ChangeDeviceId)
 {
     constexpr Int newDeviceId = 100;
-    interfaceFb.setPropertyValue("PayloadType", 1);
     captureFb.setPropertyValue("DeviceId", newDeviceId);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
@@ -206,4 +202,20 @@ TEST_F(AsamCmpStreamFixture, ChangeDeviceId)
     callsMultiMap.processPacket(packet);
     haveSamples = waitForSamples(reader);
     ASSERT_TRUE(haveSamples);
+}
+
+TEST_F(AsamCmpStreamFixture, RemoveStream)
+{
+    interfaceFb.getPropertyValue("RemoveStream").execute(0);
+    ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 0);
+
+    ASSERT_EQ(callsMultiMap.size(), 0);
+}
+
+TEST_F(AsamCmpStreamFixture, RemoveInterface)
+{
+    captureFb.getPropertyValue("RemoveInterface").execute(0);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0);
+
+    ASSERT_EQ(callsMultiMap.size(), 0);
 }

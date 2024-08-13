@@ -40,7 +40,20 @@ void DataSinkFb::addCaptureModuleEmpty()
 
 void DataSinkFb::removeCaptureModule(int fbIndex)
 {
-    functionBlocks.removeItem(functionBlocks.getItems().getItemAt(fbIndex));
+    FunctionBlockPtr captureFb = functionBlocks.getItems().getItemAt(fbIndex);
+    uint16_t deviceId = captureFb.getPropertyValue("DeviceId");
+
+    for (const FunctionBlockPtr& interfaceFb : captureFb.getFunctionBlocks())
+    {
+        uint32_t interfaceId = interfaceFb.getPropertyValue("InterfaceId");
+        for (const auto& streamFb : interfaceFb.getFunctionBlocks())
+        {
+            Int streamId = streamFb.getPropertyValue("StreamId");
+            auto handler = streamFb.as<IDataHandler>(true);
+            callsMap.erase(deviceId, interfaceId, streamId, handler);
+        }
+    }
+    functionBlocks.removeItem(captureFb);
 }
 
 void DataSinkFb::initProperties()

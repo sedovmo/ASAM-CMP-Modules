@@ -42,8 +42,9 @@ void InterfaceFb::updateInterfaceIdInternal()
     for (const auto& fb : functionBlocks.getItems())
     {
         Int streamId = fb.getPropertyValue("StreamId");
-        callsMap.erase(deviceId, oldInterfaceId, streamId, fb.as<IDataHandler>(true));
-        callsMap.insert(deviceId, interfaceId, streamId, fb.as<IDataHandler>(true));
+        auto handler = fb.as<IDataHandler>(true);
+        callsMap.erase(deviceId, oldInterfaceId, streamId, handler);
+        callsMap.insert(deviceId, interfaceId, streamId, handler);
     }
 }
 
@@ -57,7 +58,7 @@ void InterfaceFb::addStreamInternal()
 void InterfaceFb::removeStreamInternal(size_t nInd)
 {
     auto fb = functionBlocks.getItems().getItemAt(nInd);
-    uint8_t streamId = fb.getPropertyValue("StreamId");
+    Int streamId = fb.getPropertyValue("StreamId");
     callsMap.erase(deviceId, interfaceId, streamId, fb.asPtr<IDataHandler>(true));
     functionBlocks.removeItem(fb);
 }
