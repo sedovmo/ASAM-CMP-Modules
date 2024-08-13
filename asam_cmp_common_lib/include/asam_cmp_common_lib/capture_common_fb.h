@@ -34,7 +34,7 @@ protected:
     template <class Impl, typename... Params>
     FunctionBlockPtr addInterfaceWithParams(uint32_t interfaceId, Params&&... params);
     virtual void addInterfaceInternal() = 0;
-    virtual void updateDeviceId();
+    virtual void updateDeviceIdInternal();
     virtual void removeInterfaceInternal(size_t nInd);
 
     daq::ErrCode INTERFACE_FUNC beginUpdate() override;

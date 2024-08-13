@@ -29,19 +29,20 @@ public:
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
-                         const uint16_t deviceId,
+                         const uint16_t& deviceId,
                          CallsMultiMap& callsMap);
     explicit InterfaceFb(const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
-                         const uint16_t deviceId,
+                         const uint16_t& deviceId,
                          CallsMultiMap& callsMap,
                          ASAM::CMP::InterfaceStatus&& ifStatus);
 
     ~InterfaceFb() override = default;
 
 protected:
+    void updateInterfaceIdInternal() override;
     void addStreamInternal() override;
     void removeStreamInternal(size_t nInd) override;
 
@@ -51,7 +52,7 @@ private:
 private:
     ASAM::CMP::InterfaceStatus interfaceStatus;
     CallsMultiMap& callsMap;
-    const uint16_t deviceId;
+    const uint16_t& deviceId;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

@@ -15,6 +15,8 @@
 using namespace std::chrono_literals;
 
 using namespace daq;
+using ASAM::CMP::CanPayload;
+using ASAM::CMP::Packet;
 using daq::modules::asam_cmp_data_sink_module::CallsMultiMap;
 using daq::modules::asam_cmp_data_sink_module::IDataHandler;
 
@@ -48,19 +50,43 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0", callsMultiMap);
+            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", callsMultiMap);
 
         captureFb.getPropertyValue("AddInterface").execute();
         interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
         interfaceFb.getPropertyValue("AddStream").execute();
         funcBlock = interfaceFb.getFunctionBlocks().getItemAt(0);
+
+        captureFb.setPropertyValue("DeviceId", deviceId);
+        interfaceFb.setPropertyValue("InterfaceId", interfaceId);
+        funcBlock.setPropertyValue("StreamId", streamId);
+
+        CanPayload canPayload;
+        canPayload.setData(reinterpret_cast<const uint8_t*>(&data), sizeof(data));
+
+        packet = std::make_shared<Packet>();
+        packet->setPayload(canPayload);
+        timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        packet->setTimestamp(timestamp);
+        packet->setDeviceId(deviceId);
+        packet->setInterfaceId(interfaceId);
+        packet->setStreamId(streamId);
     }
+
+protected:
+    static constexpr uint16_t deviceId = 0;
+    static constexpr uint32_t interfaceId = 1;
+    static constexpr uint8_t streamId = 2;
 
 protected:
     CallsMultiMap callsMultiMap;
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interfaceFb;
     FunctionBlockPtr funcBlock;
+
+    std::shared_ptr<Packet> packet;
+    long long timestamp;
+    const uint32_t data = 33;
 };
 
 TEST_F(AsamCmpStreamFixture, NotNull)
@@ -92,12 +118,6 @@ TEST_F(AsamCmpStreamFixture, SignalsCount)
 
 TEST_F(AsamCmpStreamFixture, ReceivePacketWithWrongPayloadType)
 {
-    ASAM::CMP::CanPayload canPayload;
-    uint32_t data = 33;
-    canPayload.setData(reinterpret_cast<uint8_t*>(&data), sizeof(data));
-    const auto packet = std::make_shared<ASAM::CMP::Packet>();
-    packet->setPayload(canPayload);
-
     interfaceFb.setPropertyValue("PayloadType", 3);
     const auto dataHandler = funcBlock.as<IDataHandler>(true);
 
@@ -105,29 +125,20 @@ TEST_F(AsamCmpStreamFixture, ReceivePacketWithWrongPayloadType)
     const StreamReaderPtr reader = StreamReader(outputSignal);
 
     dataHandler->processData(packet);
-    const bool waited = waitForSamples(reader);
-    ASSERT_FALSE(waited);
+    const bool haveSamples = waitForSamples(reader);
+    ASSERT_FALSE(haveSamples);
 }
 
 TEST_F(AsamCmpStreamFixture, ReadOutputSignal)
 {
-    ASAM::CMP::CanPayload canPayload;
-    uint32_t data = 33;
-    canPayload.setData(reinterpret_cast<uint8_t*>(&data), sizeof(data));
-    const auto packet = std::make_shared<ASAM::CMP::Packet>();
-    packet->setPayload(canPayload);
-    auto timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-    packet->setTimestamp(timestamp);
-
     interfaceFb.setPropertyValue("PayloadType", 1);
-    const auto dataHandler = funcBlock.as<IDataHandler>(true);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
 
-    dataHandler->processData(packet);
-    const bool waited = waitForSamples(reader);
-    ASSERT_TRUE(waited);
+    callsMultiMap.processPacket(packet);
+    const bool haveSamples = waitForSamples(reader);
+    ASSERT_TRUE(haveSamples);
 
     CANData sample;
     int64_t domainSample;
@@ -138,4 +149,61 @@ TEST_F(AsamCmpStreamFixture, ReadOutputSignal)
     ASSERT_EQ(sample.length, sizeof(data));
     uint32_t checkData = *reinterpret_cast<uint32_t*>(sample.data);
     ASSERT_EQ(checkData, data);
+}
+
+TEST_F(AsamCmpStreamFixture, ChangeStreamId)
+{
+    constexpr Int newStreamId = 100;
+    interfaceFb.setPropertyValue("PayloadType", 1);
+    funcBlock.setPropertyValue("StreamId", newStreamId);
+
+    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
+
+    callsMultiMap.processPacket(packet);
+    bool haveSamples = waitForSamples(reader);
+    ASSERT_FALSE(haveSamples);
+
+    packet->setStreamId(newStreamId);
+    callsMultiMap.processPacket(packet);
+    haveSamples = waitForSamples(reader);
+    ASSERT_TRUE(haveSamples);
+}
+
+TEST_F(AsamCmpStreamFixture, ChangeInterfaceId)
+{
+    constexpr Int newInterfaceId = 100;
+    interfaceFb.setPropertyValue("PayloadType", 1);
+    interfaceFb.setPropertyValue("InterfaceId", newInterfaceId);
+
+    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
+
+    callsMultiMap.processPacket(packet);
+    bool haveSamples = waitForSamples(reader);
+    ASSERT_FALSE(haveSamples);
+
+    packet->setInterfaceId(newInterfaceId);
+    callsMultiMap.processPacket(packet);
+    haveSamples = waitForSamples(reader);
+    ASSERT_TRUE(haveSamples);
+}
+
+TEST_F(AsamCmpStreamFixture, ChangeDeviceId)
+{
+    constexpr Int newDeviceId = 100;
+    interfaceFb.setPropertyValue("PayloadType", 1);
+    captureFb.setPropertyValue("DeviceId", newDeviceId);
+
+    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
+
+    callsMultiMap.processPacket(packet);
+    bool haveSamples = waitForSamples(reader);
+    ASSERT_FALSE(haveSamples);
+
+    packet->setDeviceId(newDeviceId);
+    callsMultiMap.processPacket(packet);
+    haveSamples = waitForSamples(reader);
+    ASSERT_TRUE(haveSamples);
 }

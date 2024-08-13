@@ -37,6 +37,7 @@ public:
     ~CaptureFb() override = default;
 
 protected:
+    void updateDeviceIdInternal() override;
     void addInterfaceInternal() override;
 
 private:

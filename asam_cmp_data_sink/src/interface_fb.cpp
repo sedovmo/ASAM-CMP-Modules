@@ -9,7 +9,7 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
-                         const uint16_t deviceId,
+                         const uint16_t& deviceId,
                          CallsMultiMap& callsMap)
     : InterfaceCommonFb(ctx, parent, localId, init)
     , deviceId(deviceId)
@@ -21,7 +21,7 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
-                         const uint16_t deviceId,
+                         const uint16_t& deviceId,
                          CallsMultiMap& callsMap,
                          ASAM::CMP::InterfaceStatus&& ifStatus)
     : InterfaceCommonFb(ctx, parent, localId, init)
@@ -32,10 +32,25 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
     createFbs();
 }
 
+void InterfaceFb::updateInterfaceIdInternal()
+{
+    auto oldInterfaceId = interfaceId;
+    InterfaceCommonFb::updateInterfaceIdInternal();
+    if (oldInterfaceId == interfaceId)
+        return;
+
+    for (const auto& fb : functionBlocks.getItems())
+    {
+        Int streamId = fb.getPropertyValue("StreamId");
+        callsMap.erase(deviceId, oldInterfaceId, streamId, fb.as<IDataHandler>(true));
+        callsMap.insert(deviceId, interfaceId, streamId, fb.as<IDataHandler>(true));
+    }
+}
+
 void InterfaceFb::addStreamInternal()
 {
     auto streamId = streamIdManager->getFirstUnusedId();
-    auto newFb = addStreamWithParams<StreamFb>(streamId);
+    auto newFb = addStreamWithParams<StreamFb>(streamId, callsMap, deviceId, interfaceId);
     callsMap.insert(deviceId, interfaceId, streamId, newFb.as<IDataHandler>(true));
 }
 
@@ -43,7 +58,7 @@ void InterfaceFb::removeStreamInternal(size_t nInd)
 {
     auto fb = functionBlocks.getItems().getItemAt(nInd);
     uint8_t streamId = fb.getPropertyValue("StreamId");
-    callsMap.erase(deviceId, interfaceId, streamId, fb.asPtr<IDataHandler>());
+    callsMap.erase(deviceId, interfaceId, streamId, fb.asPtr<IDataHandler>(true));
     functionBlocks.removeItem(fb);
 }
 
@@ -54,7 +69,7 @@ void InterfaceFb::createFbs()
     for (uint16_t i = 0; i < ifPayload.getStreamIdsCount(); ++i)
     {
         auto newId = streamIds[i];
-        addStreamWithParams<StreamFb>(newId);
+        addStreamWithParams<StreamFb>(newId, callsMap, deviceId, interfaceId);
     }
 }
 

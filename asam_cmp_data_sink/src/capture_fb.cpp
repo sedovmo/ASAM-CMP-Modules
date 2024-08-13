@@ -21,6 +21,26 @@ CaptureFb::CaptureFb(const ContextPtr& ctx,
     createFbs();
 }
 
+void CaptureFb::updateDeviceIdInternal()
+{
+    auto oldDeviceId = deviceId;
+    CaptureCommonFb::updateDeviceIdInternal();
+    if (oldDeviceId == deviceId)
+        return;
+
+    for (const FunctionBlockPtr& interfaceFb : functionBlocks.getItems())
+    {
+        uint32_t interfaceId = interfaceFb.getPropertyValue("InterfaceId");
+        for (const auto& streamFb : interfaceFb.getFunctionBlocks())
+        {
+            Int streamId = streamFb.getPropertyValue("StreamId");
+            auto handler = streamFb.as<IDataHandler>(true);
+            callsMap.erase(oldDeviceId, interfaceId, streamId, handler);
+            callsMap.insert(deviceId, interfaceId, streamId, handler);
+        }
+    }
+}
+
 void CaptureFb::addInterfaceInternal()
 {
     auto interfaceId = interfaceIdManager.getFirstUnusedId();
