@@ -86,3 +86,55 @@ TEST_F(AsamCmpInterfaceFixture, AddRemoveStream)
 
     ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 1);
 }
+
+TEST_F(AsamCmpInterfaceFixture, TestBeginUpdateEndUpdate)
+{
+    size_t oldInterfaceId = interfaceFb.getPropertyValue("InterfaceId");
+    size_t oldPayloadType = interfaceFb.getPropertyValue("PayloadType");
+
+    size_t interfaceId = (oldInterfaceId == 1 ? 2 : 1);
+    size_t payloadType = (oldPayloadType == 0 ? 1 : 0);
+
+    ProcedurePtr createProc = interfaceFb.getPropertyValue("AddStream");
+    ProcedurePtr removeProc = interfaceFb.getPropertyValue("RemoveStream");
+
+    interfaceFb.beginUpdate();
+    interfaceFb.setPropertyValue("InterfaceId", interfaceId);
+    interfaceFb.setPropertyValue("PayloadType", payloadType);
+
+    ASSERT_EQ(interfaceFb.getPropertyValue("InterfaceId"), oldInterfaceId);
+    ASSERT_EQ(interfaceFb.getPropertyValue("PayloadType"), oldPayloadType);
+    ASSERT_ANY_THROW(createProc());
+    ASSERT_ANY_THROW(removeProc(0));
+    interfaceFb.endUpdate();
+
+    ASSERT_EQ(interfaceFb.getPropertyValue("InterfaceId"), interfaceId);
+    ASSERT_EQ(interfaceFb.getPropertyValue("PayloadType"), payloadType);
+    ASSERT_NO_THROW(createProc());
+    ASSERT_NO_THROW(removeProc(0));
+}
+
+TEST_F(AsamCmpInterfaceFixture, TestBeginUpdateEndUpdateWithWrongId)
+{
+    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
+    createProc();
+    FunctionBlockPtr itf2 = captureFb.getFunctionBlocks().getItemAt(1);
+    size_t deprecatedId = itf2.getPropertyValue("InterfaceId");
+
+    size_t oldInterfaceId = interfaceFb.getPropertyValue("InterfaceId");
+    size_t oldPayloadType = interfaceFb.getPropertyValue("PayloadType");
+
+    size_t interfaceId = deprecatedId;
+    size_t payloadType = (oldPayloadType == 0 ? 1 : 0);
+
+    interfaceFb.beginUpdate();
+    interfaceFb.setPropertyValue("InterfaceId", interfaceId);
+    interfaceFb.setPropertyValue("PayloadType", payloadType);
+
+    ASSERT_EQ(interfaceFb.getPropertyValue("InterfaceId"), oldInterfaceId);
+    ASSERT_EQ(interfaceFb.getPropertyValue("PayloadType"), oldPayloadType);
+    interfaceFb.endUpdate();
+
+    ASSERT_EQ(interfaceFb.getPropertyValue("InterfaceId"), oldInterfaceId);
+    ASSERT_EQ(interfaceFb.getPropertyValue("PayloadType"), payloadType);
+}

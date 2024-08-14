@@ -62,3 +62,27 @@ TEST_F(CaptureModuleTest, TestCreateInterface)
     ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 1);
     ASSERT_EQ(captureFb.getFunctionBlocks().getItemAt(0).getPropertyValue("InterfaceId"), lstId);
 }
+
+TEST_F(CaptureModuleTest, TestBeginUpdateEndUpdate)
+{
+    uint32_t oldDeviceId = captureFb.getPropertyValue("DeviceId");
+
+    size_t deviceId = (oldDeviceId == 1 ? 2 : 1);
+
+    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
+    ProcedurePtr removeProc = captureFb.getPropertyValue("RemoveInterface");
+
+    captureFb.beginUpdate();
+    captureFb.setPropertyValue("DeviceId", deviceId);
+
+    ASSERT_EQ(captureFb.getPropertyValue("DeviceId"), oldDeviceId);
+
+    ASSERT_ANY_THROW(createProc());
+    ASSERT_ANY_THROW(removeProc(0));
+    captureFb.endUpdate();
+
+    ASSERT_EQ(captureFb.getPropertyValue("DeviceId"), deviceId);
+
+    ASSERT_NO_THROW(createProc());
+    ASSERT_NO_THROW(removeProc(0));
+}
