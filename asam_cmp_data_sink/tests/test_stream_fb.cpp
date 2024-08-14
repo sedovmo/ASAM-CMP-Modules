@@ -33,7 +33,7 @@ bool waitForSamples(const GenericReaderPtr<IReader>& reader, std::chrono::millis
     return curTime - startTime < timeout;
 }
 
-class AsamCmpStreamFixture : public testing::Test
+class StreamFbTest : public testing::Test
 {
 protected:
 #pragma pack(push, 1)
@@ -90,12 +90,12 @@ protected:
     const uint32_t data = 33;
 };
 
-TEST_F(AsamCmpStreamFixture, NotNull)
+TEST_F(StreamFbTest, NotNull)
 {
     ASSERT_NE(funcBlock, nullptr);
 }
 
-TEST_F(AsamCmpStreamFixture, FunctionBlockType)
+TEST_F(StreamFbTest, FunctionBlockType)
 {
     auto type = funcBlock.getFunctionBlockType();
     ASSERT_EQ(type.getId(), "asam_cmp_stream");
@@ -103,7 +103,7 @@ TEST_F(AsamCmpStreamFixture, FunctionBlockType)
     ASSERT_EQ(type.getDescription(), "Asam CMP Stream");
 }
 
-TEST_F(AsamCmpStreamFixture, StreamIdProperty)
+TEST_F(StreamFbTest, StreamIdProperty)
 {
     const int streamId = funcBlock.getPropertyValue("StreamId");
     const int newStreamId = streamId + 1;
@@ -111,13 +111,13 @@ TEST_F(AsamCmpStreamFixture, StreamIdProperty)
     ASSERT_EQ(funcBlock.getPropertyValue("StreamId"), newStreamId);
 }
 
-TEST_F(AsamCmpStreamFixture, SignalsCount)
+TEST_F(StreamFbTest, SignalsCount)
 {
     const auto outputSignals = funcBlock.getSignalsRecursive();
     ASSERT_EQ(outputSignals.getCount(), 1);
 }
 
-TEST_F(AsamCmpStreamFixture, ReceivePacketWithWrongPayloadType)
+TEST_F(StreamFbTest, ReceivePacketWithWrongPayloadType)
 {
     interfaceFb.setPropertyValue("PayloadType", 3);
     const auto dataHandler = funcBlock.as<IDataHandler>(true);
@@ -130,7 +130,7 @@ TEST_F(AsamCmpStreamFixture, ReceivePacketWithWrongPayloadType)
     ASSERT_FALSE(haveSamples);
 }
 
-TEST_F(AsamCmpStreamFixture, ReadOutputSignal)
+TEST_F(StreamFbTest, ReadOutputSignal)
 {
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Struct, SampleType::Int64);
@@ -150,7 +150,7 @@ TEST_F(AsamCmpStreamFixture, ReadOutputSignal)
     ASSERT_EQ(checkData, data);
 }
 
-TEST_F(AsamCmpStreamFixture, ChangeStreamId)
+TEST_F(StreamFbTest, ChangeStreamId)
 {
     constexpr Int newStreamId = 100;
     funcBlock.setPropertyValue("StreamId", newStreamId);
@@ -168,7 +168,7 @@ TEST_F(AsamCmpStreamFixture, ChangeStreamId)
     ASSERT_TRUE(haveSamples);
 }
 
-TEST_F(AsamCmpStreamFixture, ChangeInterfaceId)
+TEST_F(StreamFbTest, ChangeInterfaceId)
 {
     constexpr Int newInterfaceId = 100;
     interfaceFb.setPropertyValue("InterfaceId", newInterfaceId);
@@ -186,7 +186,7 @@ TEST_F(AsamCmpStreamFixture, ChangeInterfaceId)
     ASSERT_TRUE(haveSamples);
 }
 
-TEST_F(AsamCmpStreamFixture, ChangeDeviceId)
+TEST_F(StreamFbTest, ChangeDeviceId)
 {
     constexpr Int newDeviceId = 100;
     captureFb.setPropertyValue("DeviceId", newDeviceId);
@@ -204,7 +204,7 @@ TEST_F(AsamCmpStreamFixture, ChangeDeviceId)
     ASSERT_TRUE(haveSamples);
 }
 
-TEST_F(AsamCmpStreamFixture, RemoveStream)
+TEST_F(StreamFbTest, RemoveStream)
 {
     interfaceFb.getPropertyValue("RemoveStream").execute(0);
     ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 0);
@@ -212,7 +212,7 @@ TEST_F(AsamCmpStreamFixture, RemoveStream)
     ASSERT_EQ(callsMultiMap.size(), 0);
 }
 
-TEST_F(AsamCmpStreamFixture, RemoveInterface)
+TEST_F(StreamFbTest, RemoveInterface)
 {
     captureFb.getPropertyValue("RemoveInterface").execute(0);
     ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0);

@@ -15,10 +15,10 @@ using ASAM::CMP::CaptureModulePayload;
 using ASAM::CMP::InterfacePayload;
 using ASAM::CMP::Packet;
 
-class DataSinkFbFixture : public ::testing::Test
+class DataSinkFbTest : public ::testing::Test
 {
 protected:
-    DataSinkFbFixture()
+    DataSinkFbTest()
     {
         auto logger = Logger();
         context = Context(Scheduler(logger), logger, TypeManager(), nullptr);
@@ -62,13 +62,13 @@ protected:
     std::shared_ptr<Packet> ifPacket;
 };
 
-TEST_F(DataSinkFbFixture, NotNull)
+TEST_F(DataSinkFbTest, NotNull)
 {
     ASSERT_NE(funcBlock, nullptr);
     ASSERT_NE(statusHandler, nullptr);
 }
 
-TEST_F(DataSinkFbFixture, FunctionBlockType)
+TEST_F(DataSinkFbTest, FunctionBlockType)
 {
     auto type = funcBlock.getFunctionBlockType();
     ASSERT_EQ(type.getId(), "asam_cmp_data_sink");
@@ -76,7 +76,7 @@ TEST_F(DataSinkFbFixture, FunctionBlockType)
     ASSERT_EQ(type.getDescription(), "ASAM CMP Data Sink");
 }
 
-TEST_F(DataSinkFbFixture, AddCaptureModuleFromStatus)
+TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
 {
     auto proc = daq::Procedure([]() {});
     EXPECT_THROW(funcBlock.setPropertyValue("AddCaptureModuleFromStatus", proc), daq::AccessDeniedException);
@@ -145,7 +145,7 @@ TEST_F(DataSinkFbFixture, AddCaptureModuleFromStatus)
     ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
 }
 
-TEST_F(DataSinkFbFixture, AddCaptureModuleEmpty)
+TEST_F(DataSinkFbTest, AddCaptureModuleEmpty)
 {
     auto proc = daq::Procedure([]() {});
     EXPECT_THROW(funcBlock.setPropertyValue("AddCaptureModuleEmpty", proc), daq::AccessDeniedException);
@@ -156,7 +156,7 @@ TEST_F(DataSinkFbFixture, AddCaptureModuleEmpty)
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
 }
 
-TEST_F(DataSinkFbFixture, RemoveCaptureModule)
+TEST_F(DataSinkFbTest, RemoveCaptureModule)
 {
     auto proc = daq::Procedure([]() {});
     EXPECT_THROW(funcBlock.setPropertyValue("RemoveCaptureModule", proc), daq::AccessDeniedException);

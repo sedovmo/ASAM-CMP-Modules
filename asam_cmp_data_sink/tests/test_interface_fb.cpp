@@ -10,10 +10,10 @@
 using namespace daq;
 using namespace testing;
 
-class AsamCmpInterfaceFixture : public ::testing::Test
+class InterfaceFbTest : public ::testing::Test
 {
 protected:
-    AsamCmpInterfaceFixture()
+    InterfaceFbTest()
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
@@ -29,12 +29,12 @@ protected:
     modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
 };
 
-TEST_F(AsamCmpInterfaceFixture, NotNull)
+TEST_F(InterfaceFbTest, NotNull)
 {
     ASSERT_NE(interfaceFb, nullptr);
 }
 
-TEST_F(AsamCmpInterfaceFixture, CaptureModuleProperties)
+TEST_F(InterfaceFbTest, CaptureModuleProperties)
 {
     ASSERT_TRUE(interfaceFb.hasProperty("InterfaceId"));
     ASSERT_TRUE(interfaceFb.hasProperty("PayloadType"));
@@ -42,7 +42,7 @@ TEST_F(AsamCmpInterfaceFixture, CaptureModuleProperties)
     ASSERT_TRUE(interfaceFb.hasProperty("RemoveStream"));
 }
 
-TEST_F(AsamCmpInterfaceFixture, InterfaceId)
+TEST_F(InterfaceFbTest, InterfaceId)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
     createProc();
@@ -71,7 +71,7 @@ TEST_F(AsamCmpInterfaceFixture, InterfaceId)
     ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
 }
 
-TEST_F(AsamCmpInterfaceFixture, AddRemoveStream)
+TEST_F(InterfaceFbTest, AddRemoveStream)
 {
     ProcedurePtr addStream = interfaceFb.getPropertyValue("AddStream");
     interfaceFb.setPropertyValue("PayloadType", 1);
@@ -87,7 +87,7 @@ TEST_F(AsamCmpInterfaceFixture, AddRemoveStream)
     ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 1);
 }
 
-TEST_F(AsamCmpInterfaceFixture, TestBeginUpdateEndUpdate)
+TEST_F(InterfaceFbTest, TestBeginUpdateEndUpdate)
 {
     size_t oldInterfaceId = interfaceFb.getPropertyValue("InterfaceId");
     size_t oldPayloadType = interfaceFb.getPropertyValue("PayloadType");
@@ -114,7 +114,7 @@ TEST_F(AsamCmpInterfaceFixture, TestBeginUpdateEndUpdate)
     ASSERT_NO_THROW(removeProc(0));
 }
 
-TEST_F(AsamCmpInterfaceFixture, TestBeginUpdateEndUpdateWithWrongId)
+TEST_F(InterfaceFbTest, TestBeginUpdateEndUpdateWithWrongId)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
     createProc();

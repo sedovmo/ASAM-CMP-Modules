@@ -10,10 +10,10 @@ using namespace daq;
 using ::testing::Return;
 using namespace testing;
 
-class DataSinkModuleFbFixture : public ::testing::Test
+class DataSinkModuleFbTest : public ::testing::Test
 {
 protected:
-    DataSinkModuleFbFixture()
+    DataSinkModuleFbTest()
     {
         ethernetWrapper = std::make_shared<asam_cmp_common_lib::EthernetPcppMock>();
 
@@ -58,14 +58,14 @@ protected:
     FunctionBlockPtr funcBlock;
 };
 
-TEST_F(DataSinkModuleFbFixture, NotNull)
+TEST_F(DataSinkModuleFbTest, NotNull)
 {
     ASSERT_NE(ethernetWrapper, nullptr);
     ASSERT_NE(context, nullptr);
     ASSERT_NE(funcBlock, nullptr);
 }
 
-TEST_F(DataSinkModuleFbFixture, FunctionBlockType)
+TEST_F(DataSinkModuleFbTest, FunctionBlockType)
 {
     auto type = funcBlock.getFunctionBlockType();
     ASSERT_EQ(type.getId(), "asam_cmp_data_sink_module");
@@ -74,7 +74,7 @@ TEST_F(DataSinkModuleFbFixture, FunctionBlockType)
 }
 
 template <typename T>
-void DataSinkModuleFbFixture::testProperty(const StringPtr& name, T newValue, bool success)
+void DataSinkModuleFbTest::testProperty(const StringPtr& name, T newValue, bool success)
 {
     funcBlock.setPropertyValue(name, newValue);
     const T value = funcBlock.getPropertyValue(name);
@@ -84,7 +84,7 @@ void DataSinkModuleFbFixture::testProperty(const StringPtr& name, T newValue, bo
         ASSERT_NE(value, newValue);
 }
 
-TEST_F(DataSinkModuleFbFixture, NetworkAdaptersProperties)
+TEST_F(DataSinkModuleFbTest, NetworkAdaptersProperties)
 {
     constexpr std::string_view networkAdapters = "NetworkAdapters";
     auto propList = funcBlock.getProperty(networkAdapters.data()).getSelectionValues().asPtrOrNull<IList>();
@@ -94,7 +94,7 @@ TEST_F(DataSinkModuleFbFixture, NetworkAdaptersProperties)
     testProperty(networkAdapters.data(), newVal);
 }
 
-TEST_F(DataSinkModuleFbFixture, NestedFbCount)
+TEST_F(DataSinkModuleFbTest, NestedFbCount)
 {
     EXPECT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
 }

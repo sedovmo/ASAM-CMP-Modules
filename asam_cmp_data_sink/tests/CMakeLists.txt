@@ -4,9 +4,9 @@ set(TEST_SOURCES test_app.cpp
                  test_data_sink_module_fb.cpp
                  test_status_fb.cpp
                  test_data_sink_fb.cpp
-                 test_capture_module.cpp
-                 test_interface.cpp
-                 test_stream.cpp
+                 test_capture_fb.cpp
+                 test_interface_fb.cpp
+                 test_stream_fb.cpp
                  test_calls_multi_map.cpp
 )
 
