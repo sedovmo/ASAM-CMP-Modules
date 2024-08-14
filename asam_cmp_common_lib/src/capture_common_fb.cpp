@@ -31,13 +31,25 @@ void CaptureCommonFb::initProperties()
     propName = "AddInterface";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>())).setReadOnly(true).build();
     objPtr.addProperty(prop);
-    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this] { addInterfaceInternal(); }));
+    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this] { addInterface(); }));
 
     propName = "RemoveInterface";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>(ArgumentInfo("nInd", ctInt)))).setReadOnly(true).build();
     objPtr.addProperty(prop);
     objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName,
-                                                                       Procedure([this](IntPtr nInd) { removeInterfaceInternal(nInd); }));
+                                                                       Procedure([this](IntPtr nInd) { removeInterface(nInd); }));
+}
+
+void CaptureCommonFb::addInterface()
+{
+    std::scoped_lock lock{sync};
+    addInterfaceInternal();
+}
+
+void CaptureCommonFb::removeInterface(size_t nInd)
+{
+    std::scoped_lock lock{sync};
+    removeInterfaceInternal(nInd);
 }
 
 void CaptureCommonFb::updateDeviceIdInternal()

@@ -44,7 +44,8 @@ protected:
 
 private:
     void initProperties();
-    size_t createdInterfaces;
+    void addInterface();
+    void removeInterface(size_t nInd);
 
 protected:
     InterfaceIdManager interfaceIdManager;
@@ -53,6 +54,9 @@ protected:
 
     std::atomic_bool isUpdating;
     std::atomic_bool needsPropertyChanged;
+
+private:
+    size_t createdInterfaces;
 };
 
 template <class Impl, typename... Params>
