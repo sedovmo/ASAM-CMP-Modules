@@ -246,12 +246,12 @@ void StreamFb::processCanPacket(const DataPacketPtr& packet, bool isCanFd)
 
 void StreamFb::processDataPacket(const DataPacketPtr& packet)
 {
-    switch (payloadType.getRawPayloadType())
+    switch (payloadType.getType())
     {
-        case uint8_t(ASAM::CMP::PayloadType::can):
+        case ASAM::CMP::PayloadType::can:
             processCanPacket(packet, false);
             break;
-        case uint8_t(ASAM::CMP::PayloadType::canFd):
+        case ASAM::CMP::PayloadType::canFd:
             processCanPacket(packet, true);
             break;
     }

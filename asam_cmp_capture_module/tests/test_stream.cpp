@@ -196,7 +196,7 @@ void StreamFbTest::testCanPacketWithParameter(bool isCanFd)
         if (packet.getStreamId() != streamId)
             return false;
 
-        if (packet.getPayload().getRawPayloadType() != uint8_t((isCanFd ? ASAM::CMP::PayloadType::canFd : ASAM::CMP::PayloadType::can)))
+        if (packet.getPayload().getType() != (isCanFd ? ASAM::CMP::PayloadType::canFd : ASAM::CMP::PayloadType::can))
             return false;
 
         if (packet.getInterfaceId() != interfaceId)
