@@ -40,7 +40,7 @@ void CaptureCommonFb::initProperties()
                                                                        Procedure([this](IntPtr nInd) { removeInterfaceInternal(nInd); }));
 }
 
-void CaptureCommonFb::updateDeviceId()
+void CaptureCommonFb::updateDeviceIdInternal()
 {
     deviceId = objPtr.getPropertyValue("DeviceId");
 }
@@ -79,7 +79,7 @@ void CaptureCommonFb::endApplyProperties(const UpdatingActions& propsAndValues, 
 
 void CaptureCommonFb::propertyChanged()
 {
-    updateDeviceId();
+    updateDeviceIdInternal();
 }
 
 void CaptureCommonFb::propertyChangedIfNotUpdating()

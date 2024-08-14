@@ -84,7 +84,7 @@ void DataSinkModuleFb::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDe
         switch (acPacket->getMessageType())
         {
             case ASAM::CMP::CmpHeader::MessageType::data:
-                callsMap.ProcessPacket(acPacket);
+                callsMap.processPacket(acPacket);
                 break;
             case ASAM::CMP::CmpHeader::MessageType::status:
                 functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->processStatusPacket(acPacket);

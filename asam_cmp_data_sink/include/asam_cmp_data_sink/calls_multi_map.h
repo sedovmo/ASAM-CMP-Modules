@@ -11,23 +11,28 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class CallsMultiMap final
 {
 public:
-    auto Insert(uint16_t deviceId, uint32_t interfaceId, uint8_t streamId, IDataHandler* handler)
+    auto insert(uint16_t deviceId, uint32_t interfaceId, uint8_t streamId, IDataHandler* handler)
     {
         std::scoped_lock lock(callMapMutex);
 
         return callsMap.insert({{deviceId, interfaceId, streamId}, handler});
     }
 
-    void Erase(uint16_t deviceId, uint32_t interfaceId, uint8_t streamId, IDataHandler* handler)
+    void erase(uint16_t deviceId, uint32_t interfaceId, uint8_t streamId, IDataHandler* handler)
     {
         std::scoped_lock lock(callMapMutex);
 
         auto range = callsMap.equal_range({deviceId, interfaceId, streamId});
+        if (range.first == callsMap.end() && range.second == callsMap.end())
+            return;
+
         auto it = std::find_if(range.first, range.second, [handler](const auto& val) { return val.second == handler; });
-        callsMap.erase(it);
+
+        if (it != callsMap.end())
+            callsMap.erase(it);
     }
 
-    void ProcessPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet)
+    void processPacket(const std::shared_ptr<ASAM::CMP::Packet>& packet)
     {
         std::scoped_lock lock(callMapMutex);
 
@@ -36,6 +41,12 @@ public:
         {
             it->second->processData(packet);
         }
+    }
+
+    size_t size() const
+    {
+        std::scoped_lock lock(callMapMutex);
+        return callsMap.size();
     }
 
 private:
@@ -60,7 +71,7 @@ private:
     };
 
 private:
-    std::mutex callMapMutex;
+    mutable std::mutex callMapMutex;
     std::unordered_multimap<Endpoint, IDataHandler*, EndpointHash> callsMap;
 };
 

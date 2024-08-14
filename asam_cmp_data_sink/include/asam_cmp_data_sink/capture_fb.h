@@ -37,7 +37,9 @@ public:
     ~CaptureFb() override = default;
 
 protected:
+    void updateDeviceIdInternal() override;
     void addInterfaceInternal() override;
+    void removeInterfaceInternal(size_t nInd) override;
 
 private:
     void createFbs();

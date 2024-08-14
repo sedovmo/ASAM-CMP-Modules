@@ -37,6 +37,14 @@ TEST_F(CaptureModuleTest, CaptureModuleProperties)
     ASSERT_TRUE(captureFb.hasProperty("RemoveInterface"));
 }
 
+TEST_F(CaptureModuleTest, DeviceIdProperty)
+{
+    int id = captureFb.getPropertyValue("DeviceId");
+    auto newId = id + 1;
+    captureFb.setPropertyValue("DeviceId", newId);
+    ASSERT_EQ(captureFb.getPropertyValue("DeviceId"), newId);
+}
+
 TEST_F(CaptureModuleTest, TestCreateInterface)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");

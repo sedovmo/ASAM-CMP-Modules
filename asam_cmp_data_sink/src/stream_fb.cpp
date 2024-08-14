@@ -9,8 +9,14 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 StreamFb::StreamFb(const ContextPtr& ctx,
                    const ComponentPtr& parent,
                    const StringPtr& localId,
-                   const asam_cmp_common_lib::StreamCommonInit& init)
+                   const asam_cmp_common_lib::StreamCommonInit& init,
+                   CallsMultiMap& callsMap,
+                   const uint16_t& deviceId,
+                   const uint32_t& interfaceId)
     : StreamCommonFbImpl(ctx, parent, localId, init)
+    , callsMap(callsMap)
+    , deviceId(deviceId)
+    , interfaceId(interfaceId)
 {
     createSignals();
     buildDataDescriptor();
@@ -46,6 +52,17 @@ void StreamFb::processData(const std::shared_ptr<ASAM::CMP::Packet>& packet)
 
     dataSignal.sendPacket(dataPacket);
     domainSignal.sendPacket(domainPacket);
+}
+
+void StreamFb::updateStreamIdInternal()
+{
+    auto oldStreamId = streamId;
+    StreamCommonFbImpl::updateStreamIdInternal();
+    if (oldStreamId == streamId)
+        return;
+
+    callsMap.erase(deviceId, interfaceId, oldStreamId, this);
+    callsMap.insert(deviceId, interfaceId, streamId, this);
 }
 
 void StreamFb::createSignals()

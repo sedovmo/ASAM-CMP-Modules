@@ -17,11 +17,9 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0", callsMultiMap);
+            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", callsMultiMap);
 
-        ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
-        createProc();
-
+        captureFb.getPropertyValue("AddInterface").execute();
         interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
     }
 
@@ -44,7 +42,7 @@ TEST_F(AsamCmpInterfaceFixture, CaptureModuleProperties)
     ASSERT_TRUE(interfaceFb.hasProperty("RemoveStream"));
 }
 
-TEST_F(AsamCmpInterfaceFixture, TestSetId)
+TEST_F(AsamCmpInterfaceFixture, InterfaceId)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
     createProc();
@@ -73,14 +71,18 @@ TEST_F(AsamCmpInterfaceFixture, TestSetId)
     ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
 }
 
-TEST_F(AsamCmpInterfaceFixture, AddStream)
+TEST_F(AsamCmpInterfaceFixture, AddRemoveStream)
 {
-    ProcedurePtr createProc = interfaceFb.getPropertyValue("AddStream");
+    ProcedurePtr addStream = interfaceFb.getPropertyValue("AddStream");
     interfaceFb.setPropertyValue("PayloadType", 1);
-    createProc();
-    createProc();
+    addStream();
+    addStream();
 
     auto s1 = interfaceFb.getFunctionBlocks().getItemAt(0), s2 = interfaceFb.getFunctionBlocks().getItemAt(1);
 
     ASSERT_NE(s1.getPropertyValue("StreamId"), s2.getPropertyValue("StreamId"));
+
+    interfaceFb.getPropertyValue("RemoveStream").execute(0);
+
+    ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 1);
 }

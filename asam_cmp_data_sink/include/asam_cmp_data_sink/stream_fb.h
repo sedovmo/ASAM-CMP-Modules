@@ -18,6 +18,7 @@
 #include <asam_cmp/packet.h>
 
 #include <asam_cmp_common_lib/stream_common_fb_impl.h>
+#include <asam_cmp_data_sink/calls_multi_map.h>
 #include <asam_cmp_data_sink/common.h>
 #include <asam_cmp_data_sink/data_handler.h>
 
@@ -38,14 +39,20 @@ public:
     explicit StreamFb(const ContextPtr& ctx,
                       const ComponentPtr& parent,
                       const StringPtr& localId,
-                      const asam_cmp_common_lib::StreamCommonInit& init);
+                      const asam_cmp_common_lib::StreamCommonInit& init,
+                      CallsMultiMap& callsMap,
+                      const uint16_t& deviceId,
+                      const uint32_t& interfaceId);
     ~StreamFb() override = default;
 
-public:  // IStreamCommon
+protected:
+    // IStreamCommon
     void setPayloadType(PayloadType type) override;
 
-protected:
+    // IDataHandler
     void processData(const std::shared_ptr<ASAM::CMP::Packet>& packet) override;
+
+    void updateStreamIdInternal() override;
 
 protected:
     void createSignals();
@@ -55,6 +62,10 @@ protected:
     StringPtr getEpoch() const;
 
 private:
+    const uint16_t& deviceId;
+    const uint32_t& interfaceId;
+    CallsMultiMap& callsMap;
+
     SignalConfigPtr dataSignal;
     SignalConfigPtr domainSignal;
 };
