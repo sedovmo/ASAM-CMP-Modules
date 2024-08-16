@@ -10,10 +10,10 @@
 
 using namespace daq;
 
-class CaptureModuleTest : public testing::Test
+class CaptureFbTest : public testing::Test
 {
 protected:
-    CaptureModuleTest()
+    CaptureFbTest()
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
@@ -25,19 +25,19 @@ protected:
     FunctionBlockPtr captureFb;
 };
 
-TEST_F(CaptureModuleTest, CreateCaptureModule)
+TEST_F(CaptureFbTest, CreateCaptureModule)
 {
     ASSERT_NE(captureFb, nullptr);
 }
 
-TEST_F(CaptureModuleTest, CaptureModuleProperties)
+TEST_F(CaptureFbTest, CaptureModuleProperties)
 {
     ASSERT_TRUE(captureFb.hasProperty("DeviceId"));
     ASSERT_TRUE(captureFb.hasProperty("AddInterface"));
     ASSERT_TRUE(captureFb.hasProperty("RemoveInterface"));
 }
 
-TEST_F(CaptureModuleTest, DeviceIdProperty)
+TEST_F(CaptureFbTest, DeviceIdProperty)
 {
     int id = captureFb.getPropertyValue("DeviceId");
     auto newId = id + 1;
@@ -45,7 +45,7 @@ TEST_F(CaptureModuleTest, DeviceIdProperty)
     ASSERT_EQ(captureFb.getPropertyValue("DeviceId"), newId);
 }
 
-TEST_F(CaptureModuleTest, TestCreateInterface)
+TEST_F(CaptureFbTest, TestCreateInterface)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
 
@@ -61,4 +61,28 @@ TEST_F(CaptureModuleTest, TestCreateInterface)
 
     ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 1);
     ASSERT_EQ(captureFb.getFunctionBlocks().getItemAt(0).getPropertyValue("InterfaceId"), lstId);
+}
+
+TEST_F(CaptureFbTest, TestBeginUpdateEndUpdate)
+{
+    uint32_t oldDeviceId = captureFb.getPropertyValue("DeviceId");
+
+    size_t deviceId = (oldDeviceId == 1 ? 2 : 1);
+
+    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
+    ProcedurePtr removeProc = captureFb.getPropertyValue("RemoveInterface");
+
+    captureFb.beginUpdate();
+    captureFb.setPropertyValue("DeviceId", deviceId);
+
+    ASSERT_EQ(captureFb.getPropertyValue("DeviceId"), oldDeviceId);
+
+    ASSERT_ANY_THROW(createProc());
+    ASSERT_ANY_THROW(removeProc(0));
+    captureFb.endUpdate();
+
+    ASSERT_EQ(captureFb.getPropertyValue("DeviceId"), deviceId);
+
+    ASSERT_NO_THROW(createProc());
+    ASSERT_NO_THROW(removeProc(0));
 }

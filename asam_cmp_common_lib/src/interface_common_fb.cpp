@@ -48,13 +48,25 @@ void InterfaceCommonFb::initProperties()
     propName = "AddStream";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>())).setReadOnly(true).build();
     objPtr.addProperty(prop);
-    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this] { addStreamInternal(); }));
+    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this] { addStream(); }));
 
     propName = "RemoveStream";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>(ArgumentInfo("nInd", ctInt)))).setReadOnly(true).build();
     objPtr.addProperty(prop);
     objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName,
-                                                                       Procedure([this](IntPtr nInd) { removeStreamInternal(nInd); }));
+                                                                       Procedure([this](IntPtr nInd) { removeStream(nInd); }));
+}
+
+void InterfaceCommonFb::addStream()
+{
+    std::scoped_lock lock{sync};
+    addStreamInternal();
+}
+
+void InterfaceCommonFb::removeStream(size_t nInd)
+{
+    std::scoped_lock lock{sync};
+    removeStreamInternal(nInd);
 }
 
 void InterfaceCommonFb::updateInterfaceIdInternal()

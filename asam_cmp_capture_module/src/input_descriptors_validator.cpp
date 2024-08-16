@@ -98,11 +98,11 @@ namespace
 
 bool validateInputDescriptor(DataDescriptorPtr inputDataDescriptor, const ASAM::CMP::PayloadType& type)
 {
-    switch (type.getRawPayloadType())
+    switch (type.getType())
     {
-        case uint8_t(ASAM::CMP::PayloadType::can):
+        case ASAM::CMP::PayloadType::can:
             return validateStructureSampleType(inputDataDescriptor, canStructureReference);
-        case uint8_t(ASAM::CMP::PayloadType::canFd):
+        case ASAM::CMP::PayloadType::canFd:
             return validateStructureSampleType(inputDataDescriptor, canStructureReference);
         default:
             return false;

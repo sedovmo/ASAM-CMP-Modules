@@ -196,7 +196,7 @@ void StreamFbTest::testCanPacketWithParameter(bool isCanFd)
         if (packet.getStreamId() != streamId)
             return false;
 
-        if (packet.getPayload().getRawPayloadType() != uint8_t((isCanFd ? ASAM::CMP::PayloadType::canFd : ASAM::CMP::PayloadType::can)))
+        if (packet.getPayload().getType() != (isCanFd ? ASAM::CMP::PayloadType::canFd : ASAM::CMP::PayloadType::can))
             return false;
 
         if (packet.getInterfaceId() != interfaceId)
@@ -223,7 +223,7 @@ void StreamFbTest::testCanPacketWithParameter(bool isCanFd)
 
     size_t timeElapsed = 0;
     auto stTime = std::chrono::steady_clock::now();
-    while (!checker() && timeElapsed < 2500000000)
+    while (!checker() && timeElapsed < 2500)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         auto curTime = std::chrono::steady_clock::now();

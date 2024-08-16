@@ -60,6 +60,8 @@ protected:
 
 private:
     void initProperties();
+    void addStream();
+    void removeStream(size_t nInd);
 
 protected:
     InterfaceIdManagerPtr interfaceIdManager;
