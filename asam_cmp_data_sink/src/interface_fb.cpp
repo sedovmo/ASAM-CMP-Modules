@@ -66,11 +66,15 @@ void InterfaceFb::removeStreamInternal(size_t nInd)
 void InterfaceFb::createFbs()
 {
     const auto& ifPayload = static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatus.getPacket().getPayload());
+    payloadType.setMessageType(ASAM::CMP::CmpHeader::MessageType::data);
+    payloadType.setRawPayloadType(ifPayload.getInterfaceType());
+    objPtr.setPropertyValue("PayloadType", asamPayloadTypeToPayloadType.at(payloadType.getType()));
     auto streamIds = ifPayload.getStreamIds();
     for (uint16_t i = 0; i < ifPayload.getStreamIdsCount(); ++i)
     {
         auto newId = streamIds[i];
-        addStreamWithParams<StreamFb>(newId, callsMap, deviceId, interfaceId);
+        auto newFb = addStreamWithParams<StreamFb>(newId, callsMap, deviceId, interfaceId);
+        callsMap.insert(deviceId, interfaceId, newId, newFb.as<IDataHandler>(true));
     }
 }
 

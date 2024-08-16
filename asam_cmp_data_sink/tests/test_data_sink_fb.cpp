@@ -39,9 +39,12 @@ protected:
         cmPacket->setVersion(1);
         cmPacket->setPayload(cmPayload);
 
+        constexpr uint8_t canInterfaceType = 1;
+
         InterfacePayload ifPayload;
         std::vector<uint8_t> streams = {1};
         ifPayload.setInterfaceId(0);
+        ifPayload.setInterfaceType(canInterfaceType);
         ifPayload.setData(streams.data(), static_cast<uint16_t>(streams.size()), nullptr, 0);
         ifPacket = std::make_shared<Packet>();
         ifPacket->setVersion(1);
