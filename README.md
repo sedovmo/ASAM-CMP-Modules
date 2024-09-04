@@ -53,7 +53,6 @@ AsamCmpCaptureModule FB
     |  - HardwareVersion - string property with device hardware version, used in Capture Module Status Messages
     |  - SoftwareVersion - string property with device software version, used in Capture Module Status Messages
     |  - VendorData - string property with vendor defined data, used in Capture Module Status Messages
-    |  - AllowJumboFrames - boolean read-only property. **Always true.**
     |
     |-- Interface FB
          |  - InterfaceId - integer property with unique interface ID
@@ -63,11 +62,16 @@ AsamCmpCaptureModule FB
          |  - VendorData - string property with vendor defined data
          |
          |-- Stream FB
-                - StreamId - integer property with unique stream ID
+             |  - StreamId - integer property with unique stream ID
+             |  - MinValue - minimal possible value from connected **if unscaled signal is connected, read only**
+             |  - MaxValue - maximal possible value from connected **if unscaled signal is connected, read only**
+             |  - Scale    - value scaling coefficient **if scaled signal is connected, read only**
+             |  - Offset   - value offset **if scaled signal is connected, read only**
+</pre>
 </pre>
 
 ### Capture Module Input Data Format
-Each Stream FB has an input port to which you can connect an openDAQ signal. You should select the type of the input data and output ASAM CMP payload type using the PayloadType property in the Interface FB. If you connect an openDAQ signal with data that is not suitable for the selected Payload Type you **need to describe what happen**
+Each Stream FB has an input port to which you can connect an openDAQ signal. You should select the type of the input data and output ASAM CMP payload type using the PayloadType property in the Interface FB. If you connect an openDAQ signal with data that is not suitable for the selected Payload Type you connection will not be established with corresponding log record.
 
 #### CAN / CAN-FD
 For CAN / CAN-FD payload type input data should have Struct sample type which described by the next structure:
@@ -81,8 +85,8 @@ struct CANData
 ```
 
 #### Analog data
-You can use any simple sample type as analog input data. If you have `Int16` or `Int32` with or without Post Scaling property the data will be copied directly into the ASAM CMP message payload. In other cases it will be converted to an `Int32` sample type with Post Scaling property.  
-**Add more constraints on Analog data**
+You can use any simple sample type if Post Scaling is applied, raw data should be 'Int16' or 'Int32'. In case raw data type doesn't match this requirement the signal will be treaten as unscaled
+You can use any simple sample type without Post Scaling. In this case range 'min/max' should be provided and the data from input signal will be scaled internally. In case connected signal doesn't have 'min/max' range connection will not be established with corresponding log record.  
 
 ### Data Sink Structure
 You can add multiple Capture FBs to the AsamCmpDataSink FB.  
