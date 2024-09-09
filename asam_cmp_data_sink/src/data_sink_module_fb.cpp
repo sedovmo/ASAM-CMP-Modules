@@ -48,7 +48,7 @@ void DataSinkModuleFb::networkAdapterChangedInternal()
 
 FunctionBlockTypePtr DataSinkModuleFb::CreateType()
 {
-    return FunctionBlockType("asam_cmp_data_sink_module", "DataSinkModule", "ASAM CMP Data Sink Module");
+    return FunctionBlockType("asam_cmp_data_sink_module", "AsamCmpDataSinkModule", "ASAM CMP Data Sink Module");
 }
 
 void DataSinkModuleFb::createFbs()

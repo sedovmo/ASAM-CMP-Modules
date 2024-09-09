@@ -60,7 +60,7 @@ void CaptureCommonFb::updateDeviceIdInternal()
 void CaptureCommonFb::removeInterfaceInternal(size_t nInd)
 {
     if (isUpdating)
-        throw std::runtime_error("Removing pdus is disabled during update");
+        throw std::runtime_error("Removing interfaces is disabled during update");
 
     interfaceIdManager.removeId(functionBlocks.getItems().getItemAt(nInd).getPropertyValue("InterfaceId"));
     functionBlocks.removeItem(functionBlocks.getItems().getItemAt(nInd));
