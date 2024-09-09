@@ -68,7 +68,6 @@ AsamCmpCaptureModule FB
              |  - Scale    - value scaling coefficient **if scaled signal is connected, read only**
              |  - Offset   - value offset **if scaled signal is connected, read only**
 </pre>
-</pre>
 
 ### Capture Module Input Data Format
 Each Stream FB has an input port to which you can connect an openDAQ signal. You should select the type of the input data and output ASAM CMP payload type using the PayloadType property in the Interface FB. If you connect an openDAQ signal with data that is not suitable for the selected Payload Type you connection will not be established with corresponding log record.
