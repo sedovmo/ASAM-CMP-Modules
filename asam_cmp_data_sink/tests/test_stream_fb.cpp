@@ -99,6 +99,20 @@ TEST_F(StreamFbTest, StreamIdProperty)
     ASSERT_EQ(funcBlock.getPropertyValue("StreamId"), newStreamId);
 }
 
+TEST_F(StreamFbTest, AllowTheSameStreamIds)
+{
+    interfaceFb.getPropertyValue("AddStream").execute();
+    const auto streamFb2 = interfaceFb.getFunctionBlocks()[1];
+
+    int id1 = funcBlock.getPropertyValue("StreamId");
+    const int id2 = streamFb2.getPropertyValue("StreamId");
+    ASSERT_NE(id1, id2);
+
+    funcBlock.setPropertyValue("StreamId", id2);
+    id1 = funcBlock.getPropertyValue("StreamId");
+    ASSERT_EQ(id1, id2);
+}
+
 TEST_F(StreamFbTest, SignalsCount)
 {
     const auto outputSignals = funcBlock.getSignalsRecursive();

@@ -1,19 +1,19 @@
+#include <asam_cmp/interface_payload.h>
 #include <asam_cmp_capture_module/interface_fb.h>
 #include <asam_cmp_capture_module/stream_fb.h>
-#include <coreobjects/callable_info_factory.h>
 #include <coreobjects/argument_info_factory.h>
+#include <coreobjects/callable_info_factory.h>
 #include <coretypes/listobject_factory.h>
-#include <asam_cmp/interface_payload.h>
 
 #include <iostream>
 
 BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
 InterfaceFb::InterfaceFb(const ContextPtr& ctx,
-                                               const ComponentPtr& parent,
-                                               const StringPtr& localId,
-                                               const asam_cmp_common_lib::InterfaceCommonInit& init,
-                                               const InterfaceFbInit& internalInit)
+                         const ComponentPtr& parent,
+                         const StringPtr& localId,
+                         const asam_cmp_common_lib::InterfaceCommonInit& init,
+                         const InterfaceFbInit& internalInit)
     : InterfaceCommonFb(ctx, parent, localId, init)
     , encoders(internalInit.encoders)
     , deviceStatus(internalInit.deviceStatus)
@@ -57,14 +57,26 @@ void InterfaceFb::initProperties()
     auto propName = "VendorData";
     auto prop = StringPropertyBuilder(propName, vendorDataAsString).build();
     objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 }
 
 void InterfaceFb::updateInterfaceIdInternal()
 {
     std::scoped_lock lock(statusSync);
     auto oldId = interfaceId;
-    asam_cmp_common_lib::InterfaceCommonFb::updateInterfaceIdInternal();
+
+    Int newId = objPtr.getPropertyValue("InterfaceId");
+
+    if (interfaceIdManager->isValidId(newId))
+    {
+        asam_cmp_common_lib::InterfaceCommonFb::updateInterfaceIdInternal();
+    }
+    else
+    {
+        setPropertyValueInternal(
+            String("InterfaceId").asPtr<IString>(true), BaseObjectPtr(interfaceId).asPtr<IBaseObject>(true), false, false, false);
+    }
 
     if (oldId != interfaceId)
     {
@@ -86,7 +98,8 @@ void InterfaceFb::initStatusPacket()
     interfaceStatusPacket.setPayload(ASAM::CMP::InterfacePayload());
     interfaceStatusPacket.getPayload().setMessageType(ASAM::CMP::CmpHeader::MessageType::status);
     static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload())
-        .setInterfaceStatus(ASAM::CMP::InterfacePayload::InterfaceStatus::linkStatusUp);//TODO: currently as a constant (may be changed in next iterations)
+        .setInterfaceStatus(ASAM::CMP::InterfacePayload::InterfaceStatus::linkStatusUp);  // TODO: currently as a constant (may be changed
+                                                                                          // in next iterations)
 
     updateInterfaceData();
 }
@@ -94,8 +107,7 @@ void InterfaceFb::initStatusPacket()
 void InterfaceFb::updateInterfaceData()
 {
     static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload()).setInterfaceId(interfaceId);
-    static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload())
-        .setInterfaceType(payloadType.getRawPayloadType());
+    static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload()).setInterfaceType(payloadType.getRawPayloadType());
 
     vendorDataAsString = objPtr.getPropertyValue("VendorData").asPtr<IString>().toStdString();
     vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
@@ -103,7 +115,10 @@ void InterfaceFb::updateInterfaceData()
     std::vector<uint8_t> streamIdsAsVector(begin(streamIdsList), end(streamIdsList));
 
     static_cast<ASAM::CMP::InterfacePayload&>(interfaceStatusPacket.getPayload())
-        .setData(streamIdsAsVector.data(), static_cast<uint16_t>(streamIdsAsVector.size()), vendorData.data(), static_cast<uint16_t>(vendorData.size()));
+        .setData(streamIdsAsVector.data(),
+                 static_cast<uint16_t>(streamIdsAsVector.size()),
+                 vendorData.data(),
+                 static_cast<uint16_t>(vendorData.size()));
 
     deviceStatus.update(interfaceStatusPacket);
 }

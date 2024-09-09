@@ -32,7 +32,7 @@ FunctionBlockTypePtr InterfaceCommonFb::CreateType()
 void InterfaceCommonFb::initProperties()
 {
     StringPtr propName = "InterfaceId";
-    auto prop = IntPropertyBuilder(propName, interfaceId).build();
+    auto prop = IntPropertyBuilder(propName, interfaceId).setMinValue(0).setMaxValue(std::numeric_limits<uint32_t>::max()).build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
@@ -52,8 +52,7 @@ void InterfaceCommonFb::initProperties()
     propName = "RemoveStream";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>(ArgumentInfo("nInd", ctInt)))).setReadOnly(true).build();
     objPtr.addProperty(prop);
-    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName,
-                                                                       Procedure([this](IntPtr nInd) { removeStream(nInd); }));
+    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this](IntPtr nInd) { removeStream(nInd); }));
 }
 
 void InterfaceCommonFb::addStream()
@@ -75,20 +74,9 @@ void InterfaceCommonFb::updateInterfaceIdInternal()
     if (newId == interfaceId)
         return;
 
-    if (interfaceIdManager->isValidId(newId))
-    {
-        interfaceIdManager->removeId(interfaceId);
-        interfaceId = newId;
-        interfaceIdManager->addId(interfaceId);
-    }
-    else
-    {
-        setPropertyValueInternal(String("InterfaceId").asPtr<IString>(true),
-                                 BaseObjectPtr(interfaceId).asPtr<IBaseObject>(true),
-                                 false,
-                                 false,
-                                 false);
-    }
+    interfaceIdManager->removeId(interfaceId);
+    interfaceId = newId;
+    interfaceIdManager->addId(interfaceId);
 }
 
 void InterfaceCommonFb::updatePayloadTypeInternal()

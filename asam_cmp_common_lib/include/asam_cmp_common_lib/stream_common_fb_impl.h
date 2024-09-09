@@ -59,7 +59,6 @@ protected:
     uint32_t streamId;
     PayloadType payloadType{0};
 
-private:
     StreamIdManagerPtr streamIdManager;
 };
 
@@ -108,17 +107,9 @@ void StreamCommonFbImpl<Interfaces...>::updateStreamIdInternal()
     if (newId == streamId)
         return;
 
-    if (streamIdManager->isValidId(newId))
-    {
-        streamIdManager->removeId(streamId);
-        streamId = newId;
-        streamIdManager->addId(streamId);
-    }
-    else
-    {
-        setPropertyValueInternal(
-            String("StreamId").asPtr<IString>(true), BaseObjectPtr(streamId).asPtr<IBaseObject>(true), false, false, false);
-    }
+    streamIdManager->removeId(streamId);
+    streamId = newId;
+    streamIdManager->addId(streamId);
 }
 
 END_NAMESPACE_ASAM_CMP_COMMON

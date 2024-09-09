@@ -94,7 +94,7 @@ TEST_F(InterfaceFbTest, TestSetId)
     ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2);
 
     itf2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
-    ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2);
+    ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), std::numeric_limits<uint32_t>::max());
 
     itf2.setPropertyValue("InterfaceId", id2 + 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -104,7 +104,7 @@ TEST_F(InterfaceFbTest, TestSetId)
     ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2 + 1);
 
     itf2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
-    ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), id2 + 1);
+    ASSERT_EQ(itf2.getPropertyValue("InterfaceId"), std::numeric_limits<uint32_t>::max());
 }
 
 
