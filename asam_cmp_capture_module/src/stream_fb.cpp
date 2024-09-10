@@ -80,7 +80,18 @@ void StreamFb::updateStreamIdInternal()
 
     streamIdsList.erase(streamId);
     auto oldId = streamId;
-    StreamCommonFbImpl::updateStreamIdInternal();
+
+    Int newId = objPtr.getPropertyValue("StreamId");
+
+    if (streamIdManager->isValidId(newId))
+    {
+        StreamCommonFbImpl::updateStreamIdInternal();
+    }
+    else
+    {
+        setPropertyValueInternal(
+            String("StreamId").asPtr<IString>(true), BaseObjectPtr(streamId).asPtr<IBaseObject>(true), false, false, false);
+    }
 
     if (oldId != streamId)
     {
@@ -138,7 +149,6 @@ void StreamFb::configureMinMaxAnalogSignal()
     auto sampleType = inputDataDescriptor.getSampleType();
     auto range = inputDataDescriptor.getValueRange();
 
-
     if (hasCorrectValueRange(range))
     {
         analogDataMin = range.getLowValue();
@@ -192,7 +202,7 @@ void StreamFb::onAnalogSignalConnected()
     int64_t delta = inputDomainDataDescriptor.getRule().getParameters().get("delta");
     analogDataDeltaTime = delta / invertedTickResolution;
 
-    if (hasCorrectPostScaling(inputDataDescriptor.getPostScaling()) )
+    if (hasCorrectPostScaling(inputDataDescriptor.getPostScaling()))
     {
         configureScaledAnalogSignal();
     }
@@ -295,7 +305,6 @@ void StreamFb::processEventPacket(const EventPacketPtr& packet)
     }
 }
 
-
 ASAM::CMP::DataContext StreamFb::createEncoderDataContext() const
 {
     constexpr int minFrameSize{64}, maxFrameSize{1500};
@@ -397,7 +406,6 @@ void createAnalogPayloadWithInternalScaling(ASAM::CMP::AnalogPayload& payload,
     using SourceType = typename SampleTypeToType<SrcType>::Type;
     auto* rawData = reinterpret_cast<SourceType*>(packet.getRawData());
     const size_t sampleCount = packet.getSampleCount();
-    const size_t sampleSize = getSampleSize(SrcType);
 
     uint8_t unitId = asam_cmp_common_lib::Units::getIdBySymbol(packet.getDataDescriptor().getUnit().getSymbol().toStdString());
     payload.setUnit(ASAM::CMP::AnalogPayload::Unit(unitId));
@@ -415,12 +423,12 @@ void createAnalogPayloadWithInternalScaling(ASAM::CMP::AnalogPayload& payload,
 }
 
 void createAnalogPayload(ASAM::CMP::AnalogPayload& payload,
-                                             const DataPacketPtr& packet,
-                                             const DataDescriptorPtr& inputDataDescriptor,
-                                             Float analogDataScale,
-                                             Float analogDataOffset,
-                                             Float analogDataDeltaTime,
-                                             Int analogDataSampleDt)
+                         const DataPacketPtr& packet,
+                         const DataDescriptorPtr& inputDataDescriptor,
+                         Float analogDataScale,
+                         Float analogDataOffset,
+                         Float analogDataDeltaTime,
+                         Int analogDataSampleDt)
 {
     payload.setSampleInterval(analogDataDeltaTime);
 
@@ -437,17 +445,22 @@ void createAnalogPayload(ASAM::CMP::AnalogPayload& payload,
     payload.setSampleOffset(analogDataOffset);
 
     payload.setData(rawData, sampleCount * sampleSize);
-
 }
 
 void StreamFb::processAnalogPacket(const DataPacketPtr& packet)
 {
     ASAM::CMP::AnalogPayload payload;
     if (analogDataHasInternalPostScaling)
-        SAMPLE_TYPE_DISPATCH(
-            inputDataDescriptor.getSampleType(), createAnalogPayloadWithInternalScaling, payload, packet, analogDataScale, analogDataOffset, analogDataDeltaTime)
+        SAMPLE_TYPE_DISPATCH(inputDataDescriptor.getSampleType(),
+                             createAnalogPayloadWithInternalScaling,
+                             payload,
+                             packet,
+                             analogDataScale,
+                             analogDataOffset,
+                             analogDataDeltaTime)
     else
-        createAnalogPayload(payload, packet, inputDataDescriptor, analogDataScale, analogDataOffset, analogDataDeltaTime, analogDataSampleDt);
+        createAnalogPayload(
+            payload, packet, inputDataDescriptor, analogDataScale, analogDataOffset, analogDataDeltaTime, analogDataSampleDt);
 
     ASAM::CMP::Packet asamCmpPacket;
     asamCmpPacket.setInterfaceId(interfaceId);

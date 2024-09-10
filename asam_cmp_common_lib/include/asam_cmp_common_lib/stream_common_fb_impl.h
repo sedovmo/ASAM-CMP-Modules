@@ -59,7 +59,6 @@ protected:
     uint32_t streamId;
     PayloadType payloadType{0};
 
-private:
     StreamIdManagerPtr streamIdManager;
 };
 
@@ -94,7 +93,10 @@ template <typename... Interfaces>
 void StreamCommonFbImpl<Interfaces...>::initProperties()
 {
     StringPtr propName = "StreamId";
-    auto prop = IntPropertyBuilder(propName, streamId).build();
+    auto prop = IntPropertyBuilder(propName, streamId)
+                    .setMinValue(static_cast<Int>(std::numeric_limits<uint8_t>::min()))
+                    .setMaxValue(static_cast<Int>(std::numeric_limits<uint8_t>::max()))
+                    .build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateStreamIdInternal(); };
@@ -108,17 +110,9 @@ void StreamCommonFbImpl<Interfaces...>::updateStreamIdInternal()
     if (newId == streamId)
         return;
 
-    if (streamIdManager->isValidId(newId))
-    {
-        streamIdManager->removeId(streamId);
-        streamId = newId;
-        streamIdManager->addId(streamId);
-    }
-    else
-    {
-        setPropertyValueInternal(
-            String("StreamId").asPtr<IString>(true), BaseObjectPtr(streamId).asPtr<IBaseObject>(true), false, false, false);
-    }
+    streamIdManager->removeId(streamId);
+    streamId = newId;
+    streamIdManager->addId(streamId);
 }
 
 END_NAMESPACE_ASAM_CMP_COMMON

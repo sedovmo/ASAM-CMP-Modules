@@ -177,3 +177,15 @@ TEST_F(DataSinkFbTest, RemoveCaptureModule)
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0);
     ASSERT_EQ(callsMultiMap.size(), 0);
 }
+
+TEST_F(DataSinkFbTest, DefaultDevicesIds)
+{
+    funcBlock.getPropertyValue("AddCaptureModuleEmpty").execute();
+    funcBlock.getPropertyValue("AddCaptureModuleEmpty").execute();
+
+    const auto captureFb1 = funcBlock.getFunctionBlocks()[0];
+    const auto captureFb2 = funcBlock.getFunctionBlocks()[1];
+    const Int id1 = captureFb1.getPropertyValue("DeviceId");
+    const Int id2 = captureFb2.getPropertyValue("DeviceId");
+    ASSERT_EQ(id1, id2);
+}

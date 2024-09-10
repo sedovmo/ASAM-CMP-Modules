@@ -44,31 +44,38 @@ TEST_F(InterfaceFbTest, CaptureModuleProperties)
 
 TEST_F(InterfaceFbTest, InterfaceId)
 {
-    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
-    createProc();
-
+    captureFb.getPropertyValue("AddInterface").execute();
     ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 2);
 
-    FunctionBlockPtr interfaceFb2 = captureFb.getFunctionBlocks().getItemAt(1);
+    const auto interfaceFb2 = captureFb.getFunctionBlocks().getItemAt(1);
 
-    uint32_t id1 = interfaceFb.getPropertyValue("InterfaceId"), id2 = interfaceFb2.getPropertyValue("InterfaceId");
+    uint32_t id1 = interfaceFb.getPropertyValue("InterfaceId");
+    uint32_t id2 = interfaceFb2.getPropertyValue("InterfaceId");
     ASSERT_NE(id1, id2);
 
     interfaceFb2.setPropertyValue("InterfaceId", id1);
-    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2);
-
-    interfaceFb2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
-    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2);
+    id1 = interfaceFb.getPropertyValue("InterfaceId");
+    id2 = interfaceFb2.getPropertyValue("InterfaceId");
+    ASSERT_EQ(id1, id2);
 
     interfaceFb2.setPropertyValue("InterfaceId", id2 + 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
+}
 
-    interfaceFb2.setPropertyValue("InterfaceId", id1);
-    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
+TEST_F(InterfaceFbTest, InterfaceIdMin)
+{
+    constexpr auto minValue = static_cast<Int>(std::numeric_limits<uint32_t>::min());
+    interfaceFb.setPropertyValue("InterfaceId", minValue - 1);
+    ASSERT_EQ(static_cast<Int>(interfaceFb.getPropertyValue("InterfaceId")), minValue);
+}
 
-    interfaceFb2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
-    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
+TEST_F(InterfaceFbTest, InterfaceIdMax)
+{
+    constexpr auto newMax = static_cast<Int>(std::numeric_limits<uint32_t>::max()) + 1;
+    constexpr auto maxMax = static_cast<Int>(std::numeric_limits<uint32_t>::max());
+    interfaceFb.setPropertyValue("InterfaceId", newMax);
+    ASSERT_EQ(static_cast<Int>(interfaceFb.getPropertyValue("InterfaceId")), maxMax);
 }
 
 TEST_F(InterfaceFbTest, AddRemoveStream)
@@ -89,14 +96,14 @@ TEST_F(InterfaceFbTest, AddRemoveStream)
 
 TEST_F(InterfaceFbTest, TestBeginUpdateEndUpdate)
 {
-    size_t oldInterfaceId = interfaceFb.getPropertyValue("InterfaceId");
-    size_t oldPayloadType = interfaceFb.getPropertyValue("PayloadType");
+    const size_t oldInterfaceId = interfaceFb.getPropertyValue("InterfaceId");
+    const size_t oldPayloadType = interfaceFb.getPropertyValue("PayloadType");
 
-    size_t interfaceId = (oldInterfaceId == 1 ? 2 : 1);
-    size_t payloadType = (oldPayloadType == 0 ? 1 : 0);
+    const size_t interfaceId = (oldInterfaceId == 1 ? 2 : 1);
+    const size_t payloadType = (oldPayloadType == 0 ? 1 : 0);
 
-    ProcedurePtr createProc = interfaceFb.getPropertyValue("AddStream");
-    ProcedurePtr removeProc = interfaceFb.getPropertyValue("RemoveStream");
+    const ProcedurePtr createProc = interfaceFb.getPropertyValue("AddStream");
+    const ProcedurePtr removeProc = interfaceFb.getPropertyValue("RemoveStream");
 
     interfaceFb.beginUpdate();
     interfaceFb.setPropertyValue("InterfaceId", interfaceId);
@@ -116,25 +123,24 @@ TEST_F(InterfaceFbTest, TestBeginUpdateEndUpdate)
 
 TEST_F(InterfaceFbTest, TestBeginUpdateEndUpdateWithWrongId)
 {
-    ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
-    createProc();
-    FunctionBlockPtr itf2 = captureFb.getFunctionBlocks().getItemAt(1);
-    size_t deprecatedId = itf2.getPropertyValue("InterfaceId");
+    captureFb.getPropertyValue("AddInterface").execute();
 
-    size_t oldInterfaceId = interfaceFb.getPropertyValue("InterfaceId");
-    size_t oldPayloadType = interfaceFb.getPropertyValue("PayloadType");
+    const auto interfaceFb2 = captureFb.getFunctionBlocks().getItemAt(1);
+    const size_t id2 = interfaceFb2.getPropertyValue("InterfaceId");
 
-    size_t interfaceId = deprecatedId;
-    size_t payloadType = (oldPayloadType == 0 ? 1 : 0);
+    const size_t oldInterfaceId = interfaceFb.getPropertyValue("InterfaceId");
+    const size_t oldPayloadType = interfaceFb.getPropertyValue("PayloadType");
+
+    const size_t payloadType = (oldPayloadType == 0 ? 1 : 0);
 
     interfaceFb.beginUpdate();
-    interfaceFb.setPropertyValue("InterfaceId", interfaceId);
+    interfaceFb.setPropertyValue("InterfaceId", id2);
     interfaceFb.setPropertyValue("PayloadType", payloadType);
 
     ASSERT_EQ(interfaceFb.getPropertyValue("InterfaceId"), oldInterfaceId);
     ASSERT_EQ(interfaceFb.getPropertyValue("PayloadType"), oldPayloadType);
     interfaceFb.endUpdate();
 
-    ASSERT_EQ(interfaceFb.getPropertyValue("InterfaceId"), oldInterfaceId);
+    ASSERT_EQ(interfaceFb.getPropertyValue("InterfaceId"), id2);
     ASSERT_EQ(interfaceFb.getPropertyValue("PayloadType"), payloadType);
 }
