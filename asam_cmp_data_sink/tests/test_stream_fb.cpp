@@ -113,6 +113,21 @@ TEST_F(StreamFbTest, AllowTheSameStreamIds)
     ASSERT_EQ(id1, id2);
 }
 
+TEST_F(StreamFbTest, StreamIdMin)
+{
+    constexpr auto minValue = static_cast<Int>(std::numeric_limits<uint8_t>::min());
+    funcBlock.setPropertyValue("StreamId", minValue - 1);
+    ASSERT_EQ(static_cast<Int>(funcBlock.getPropertyValue("StreamId")), minValue);
+}
+
+TEST_F(StreamFbTest, StreamIdMax)
+{
+    constexpr auto newMax = static_cast<Int>(std::numeric_limits<uint32_t>::max());
+    constexpr auto maxMax = static_cast<Int>(std::numeric_limits<uint8_t>::max());
+    funcBlock.setPropertyValue("StreamId", newMax);
+    ASSERT_EQ(static_cast<Int>(funcBlock.getPropertyValue("StreamId")), maxMax);
+}
+
 TEST_F(StreamFbTest, SignalsCount)
 {
     const auto outputSignals = funcBlock.getSignalsRecursive();

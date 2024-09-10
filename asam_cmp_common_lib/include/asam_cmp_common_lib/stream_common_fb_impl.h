@@ -93,7 +93,10 @@ template <typename... Interfaces>
 void StreamCommonFbImpl<Interfaces...>::initProperties()
 {
     StringPtr propName = "StreamId";
-    auto prop = IntPropertyBuilder(propName, streamId).build();
+    auto prop = IntPropertyBuilder(propName, streamId)
+                    .setMinValue(static_cast<Int>(std::numeric_limits<uint8_t>::min()))
+                    .setMaxValue(static_cast<Int>(std::numeric_limits<uint8_t>::max()))
+                    .build();
     objPtr.addProperty(prop);
     objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateStreamIdInternal(); };

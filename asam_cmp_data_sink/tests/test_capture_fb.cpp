@@ -45,6 +45,21 @@ TEST_F(CaptureFbTest, DeviceIdProperty)
     ASSERT_EQ(captureFb.getPropertyValue("DeviceId"), newId);
 }
 
+TEST_F(CaptureFbTest, DeviceIdMin)
+{
+    constexpr auto minValue = static_cast<Int>(std::numeric_limits<uint16_t>::min());
+    captureFb.setPropertyValue("DeviceId", minValue - 1);
+    ASSERT_EQ(static_cast<Int>(captureFb.getPropertyValue("DeviceId")), minValue);
+}
+
+TEST_F(CaptureFbTest, DeviceIdMax)
+{
+    constexpr auto newMax = static_cast<Int>(std::numeric_limits<uint16_t>::max()) + 1;
+    constexpr auto maxMax = static_cast<Int>(std::numeric_limits<uint16_t>::max());
+    captureFb.setPropertyValue("DeviceId", newMax);
+    ASSERT_EQ(static_cast<Int>(captureFb.getPropertyValue("DeviceId")), maxMax);
+}
+
 TEST_F(CaptureFbTest, TestCreateInterface)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");

@@ -58,12 +58,24 @@ TEST_F(InterfaceFbTest, InterfaceId)
     id2 = interfaceFb2.getPropertyValue("InterfaceId");
     ASSERT_EQ(id1, id2);
 
-    interfaceFb2.setPropertyValue("InterfaceId", static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()) + 1);
-    ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), std::numeric_limits<uint32_t>::max());
-
     interfaceFb2.setPropertyValue("InterfaceId", id2 + 1);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     ASSERT_EQ(interfaceFb2.getPropertyValue("InterfaceId"), id2 + 1);
+}
+
+TEST_F(InterfaceFbTest, InterfaceIdMin)
+{
+    constexpr auto minValue = static_cast<Int>(std::numeric_limits<uint32_t>::min());
+    interfaceFb.setPropertyValue("InterfaceId", minValue - 1);
+    ASSERT_EQ(static_cast<Int>(interfaceFb.getPropertyValue("InterfaceId")), minValue);
+}
+
+TEST_F(InterfaceFbTest, InterfaceIdMax)
+{
+    constexpr auto newMax = static_cast<Int>(std::numeric_limits<uint32_t>::max()) + 1;
+    constexpr auto maxMax = static_cast<Int>(std::numeric_limits<uint32_t>::max());
+    interfaceFb.setPropertyValue("InterfaceId", newMax);
+    ASSERT_EQ(static_cast<Int>(interfaceFb.getPropertyValue("InterfaceId")), maxMax);
 }
 
 TEST_F(InterfaceFbTest, AddRemoveStream)

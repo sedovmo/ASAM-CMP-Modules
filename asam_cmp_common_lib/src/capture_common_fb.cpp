@@ -1,9 +1,8 @@
-#include <asam_cmp_common_lib/capture_common_fb.h>
 #include <coreobjects/argument_info_factory.h>
 #include <coreobjects/callable_info_factory.h>
-#include <coreobjects/validator_factory.h>
 #include <fmt/format.h>
-#include <set>
+
+#include <asam_cmp_common_lib/capture_common_fb.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
@@ -24,9 +23,13 @@ FunctionBlockTypePtr CaptureCommonFb::CreateType()
 void CaptureCommonFb::initProperties()
 {
     StringPtr propName = "DeviceId";
-    auto prop = IntPropertyBuilder(propName, 0).setValidator(Validator("(value >= 0) && (value <= 65535)")).build();
+    auto prop = IntPropertyBuilder(propName, 0)
+                    .setMinValue(static_cast<Int>(std::numeric_limits<uint16_t>::min()))
+                    .setMaxValue(static_cast<Int>(std::numeric_limits<uint16_t>::max()))
+                    .build();
     objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) += [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "AddInterface";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>())).setReadOnly(true).build();
@@ -36,8 +39,7 @@ void CaptureCommonFb::initProperties()
     propName = "RemoveInterface";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>(ArgumentInfo("nInd", ctInt)))).setReadOnly(true).build();
     objPtr.addProperty(prop);
-    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName,
-                                                                       Procedure([this](IntPtr nInd) { removeInterface(nInd); }));
+    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this](IntPtr nInd) { removeInterface(nInd); }));
 }
 
 void CaptureCommonFb::addInterface()
