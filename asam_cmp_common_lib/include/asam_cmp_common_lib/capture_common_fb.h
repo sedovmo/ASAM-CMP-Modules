@@ -19,6 +19,7 @@
 
 #include <asam_cmp_common_lib/common.h>
 #include <asam_cmp_common_lib/id_manager.h>
+#include <asam_cmp_common_lib/interface_common_fb.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 

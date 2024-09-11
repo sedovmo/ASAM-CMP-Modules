@@ -1,6 +1,9 @@
 list(APPEND CMAKE_MESSAGE_CONTEXT PcapPlusPlus)
 
-add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/W1>)
+
+if(MSVC)
+    add_compile_options($<$<COMPILE_LANGUAGE:C,CXX>:/W1>)
+endif()
 
 if(WIN32)
     FetchContent_Declare(

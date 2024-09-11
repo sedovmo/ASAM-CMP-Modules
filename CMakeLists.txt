@@ -15,7 +15,6 @@ setup_repo(${REPO_OPTION_PREFIX})
 
 if (${REPO_OPTION_PREFIX}_ENABLE_EXAMPLE)
         set(DAQMODULES_REF_DEVICE_MODULE ON)
-        set(OPENDAQ_GENERATE_PYTHON_BINDINGS ON)
         set(DAQMODULES_REF_FB_MODULE ON)
 
         add_subdirectory(asam_cmp_example)

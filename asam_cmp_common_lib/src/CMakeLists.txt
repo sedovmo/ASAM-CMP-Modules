@@ -32,6 +32,10 @@ add_library(${PROJECT_NAME} STATIC
     ${SRC_PrivateHeaders}
 )
 
+if(UNIX)
+    target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
+endif()
+
 target_link_libraries(${PROJECT_NAME} PUBLIC daq::opendaq
                                           Pcap++
                                           asam_cmp
