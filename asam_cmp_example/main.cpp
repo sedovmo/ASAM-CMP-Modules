@@ -7,7 +7,7 @@
 #include <opendaq/data_packet.h>
 #include <opendaq/data_packet_ptr.h>
 
-#include <iostream>
+#include <thread>
 
 using namespace daq;
 

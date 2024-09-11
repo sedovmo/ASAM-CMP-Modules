@@ -7,6 +7,8 @@
 #include <opendaq/scheduler_factory.h>
 #include <opendaq/search_filter_factory.h>
 
+#include <thread>
+
 using namespace daq;
 using namespace testing;
 

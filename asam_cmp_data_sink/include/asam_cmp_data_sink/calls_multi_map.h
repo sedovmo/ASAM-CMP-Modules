@@ -2,6 +2,7 @@
 #include <asam_cmp/packet.h>
 #include <coretypes/baseobject.h>
 #include <memory>
+#include <algorithm>
 
 #include <asam_cmp_data_sink/common.h>
 #include <asam_cmp_data_sink/data_handler.h>

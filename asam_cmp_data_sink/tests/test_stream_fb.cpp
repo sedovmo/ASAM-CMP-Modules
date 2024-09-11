@@ -13,6 +13,7 @@
 #include <opendaq/reader_factory.h>
 #include <opendaq/scheduler_factory.h>
 #include <opendaq/search_filter_factory.h>
+#include <thread>
 
 using namespace std::chrono_literals;
 
@@ -421,35 +422,35 @@ TYPED_TEST(StreamFbAnalogPayloadTest, AnalogSignalDescriptor)
     constexpr auto domainSampleType = SampleType::UInt64;
     const auto unit = Unit("kg", -1, "", "");
     constexpr auto intSize = rawSampleType == SampleType::Int16 ? 16 : 32;
-    constexpr auto minValue = sampleOffset;
-    const auto maxValue = sampleScalar * pow(2, intSize) + sampleOffset;
+    constexpr auto minValue = this->sampleOffset;
+    const auto maxValue = this->sampleScalar * pow(2, intSize) + this->sampleOffset;
 
-    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
-    funcBlock.as<IDataHandler>(true)->processData(analogPacket);
+    this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
+    this->funcBlock.template as<IDataHandler>(true)->processData(this->analogPacket);
 
-    const auto descriptor = funcBlock.getSignalsRecursive()[0].getDescriptor();
+    const auto descriptor = this->funcBlock.getSignalsRecursive()[0].getDescriptor();
     ASSERT_EQ(descriptor.getName(), name);
     ASSERT_EQ(descriptor.getSampleType(), sampleType);
     ASSERT_EQ(descriptor.getSampleSize(), sizeof(double));
-    ASSERT_EQ(descriptor.getPostScaling(), LinearScaling(sampleScalar, sampleOffset, rawSampleType));
+    ASSERT_EQ(descriptor.getPostScaling(), LinearScaling(this->sampleScalar, this->sampleOffset, rawSampleType));
     ASSERT_EQ(descriptor.getValueRange(), Range(minValue, maxValue));
     ASSERT_EQ(descriptor.getUnit(), unit);
 
-    const auto domainDescr = funcBlock.getSignalsRecursive()[0].getDomainSignal().getDescriptor();
+    const auto domainDescr = this->funcBlock.getSignalsRecursive()[0].getDomainSignal().getDescriptor();
     ASSERT_EQ(domainDescr.getRule().getType(), DataRuleType::Linear);
     ASSERT_EQ(domainDescr.getSampleType(), domainSampleType);
-    ASSERT_EQ(domainDescr.getTickResolution(), Ratio(1, timeResolution));
+    ASSERT_EQ(domainDescr.getTickResolution(), Ratio(1, this->timeResolution));
 }
 
 TYPED_TEST(StreamFbAnalogPayloadTest, ReadOutputAnalogSignal)
 {
-    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
-    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
+    const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Float64, SampleType::UInt64);
 
-    const auto& analogPayload = static_cast<const AnalogPayload&>(analogPacket->getPayload());
+    const auto& analogPayload = static_cast<const AnalogPayload&>(this->analogPacket->getPayload());
 
-    callsMultiMap.processPacket(analogPacket);
+    this->callsMultiMap.processPacket(this->analogPacket);
     auto samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, analogPayload.getSamplesCount());
 
@@ -460,7 +461,7 @@ TYPED_TEST(StreamFbAnalogPayloadTest, ReadOutputAnalogSignal)
     ASSERT_EQ(count, samplesCount);
 
     std::vector<uint64_t> checkDomain(samplesCount);
-    std::generate(checkDomain.begin(), checkDomain.end(), [t = analogPacket->getTimestamp() - deltaT]() mutable { return t += deltaT; });
+    std::generate(checkDomain.begin(), checkDomain.end(), [t = this->analogPacket->getTimestamp() - this->deltaT, this]() mutable { return t += this->deltaT; });
     ASSERT_TRUE(std::equal(domainSample.begin(), domainSample.end(), checkDomain.begin()));
 
     auto analogData = reinterpret_cast<const TypeParam*>(analogPayload.getData());
@@ -468,7 +469,7 @@ TYPED_TEST(StreamFbAnalogPayloadTest, ReadOutputAnalogSignal)
 
     std::vector<double> checkSamples(samplesCount);
     std::transform(
-        analogData, analogData + analogDataSize, checkSamples.begin(), [](const double val) { return val * sampleScalar + sampleOffset; });
+        analogData, analogData + analogDataSize, checkSamples.begin(), [this](const double val) { return val * this->sampleScalar + this->sampleOffset; });
     ASSERT_TRUE(std::equal(samples.begin(), samples.end(), checkSamples.begin()));
 }
 
@@ -489,20 +490,19 @@ struct AnotherInt<int32_t>
 
 TYPED_TEST(StreamFbAnalogPayloadTest, DataTypeChanged)
 {
-    using AnotherType = AnotherInt<TypeParam>::type;
+    using AnotherType = typename AnotherInt<TypeParam>::type;
 
-    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
-    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
+    const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Float64, SampleType::UInt64);
 
-    callsMultiMap.processPacket(analogPacket);
+    this->callsMultiMap.processPacket(this->analogPacket);
     auto samplesCount = waitForSamples(reader);
     reader.skipSamples(&samplesCount);
-
-    auto newPacket = createAnalogPacket<AnotherType>();
-    newPacket->setTimestamp(analogPacket->getTimestamp() + samplesCount * deltaT);
+    auto newPacket = this->template createAnalogPacket<AnotherType>();
+    newPacket->setTimestamp(this->analogPacket->getTimestamp() + samplesCount * this->deltaT);
     const auto& newPayload = static_cast<const AnalogPayload&>(newPacket->getPayload());
-    callsMultiMap.processPacket(newPacket);
+    this->callsMultiMap.processPacket(newPacket);
     samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, newPayload.getSamplesCount());
 
@@ -513,7 +513,7 @@ TYPED_TEST(StreamFbAnalogPayloadTest, DataTypeChanged)
     ASSERT_EQ(count, samplesCount);
 
     std::vector<uint64_t> checkDomain(samplesCount);
-    std::generate(checkDomain.begin(), checkDomain.end(), [t = newPacket->getTimestamp() - deltaT]() mutable { return t += deltaT; });
+    std::generate(checkDomain.begin(), checkDomain.end(), [t = newPacket->getTimestamp() - this->deltaT, this]() mutable { return t += this->deltaT; });
     ASSERT_TRUE(std::equal(domainSample.begin(), domainSample.end(), checkDomain.begin()));
 
     auto analogData = reinterpret_cast<const AnotherType*>(newPayload.getData());
@@ -521,7 +521,7 @@ TYPED_TEST(StreamFbAnalogPayloadTest, DataTypeChanged)
 
     std::vector<double> checkSamples(samplesCount);
     std::transform(
-        analogData, analogData + analogDataSize, checkSamples.begin(), [](const double val) { return val * sampleScalar + sampleOffset; });
+        analogData, analogData + analogDataSize, checkSamples.begin(), [this](const double val) { return val * this->sampleScalar + this->sampleOffset; });
     ASSERT_TRUE(std::equal(samples.begin(), samples.end(), checkSamples.begin()));
 }
 
@@ -530,11 +530,11 @@ TYPED_TEST(StreamFbAnalogPayloadTest, UnitChanged)
     constexpr auto asamCmpUnit = AnalogPayload::Unit::ampere;
     const StringPtr openDaqUnit = "A";
 
-    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
-    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
+    const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Float64, SampleType::UInt64);
 
-    callsMultiMap.processPacket(analogPacket);
+    this->callsMultiMap.processPacket(this->analogPacket);
     size_t count = 0;
     while (reader.read(nullptr, &count).getReadStatus() == ReadStatus::Event)
         ;
@@ -542,25 +542,25 @@ TYPED_TEST(StreamFbAnalogPayloadTest, UnitChanged)
     auto samplesCount = waitForSamples(reader);
     reader.skipSamples(&samplesCount);
 
-    analogPacket->setTimestamp(analogPacket->getTimestamp() + samplesCount * deltaT);
-    auto& payload = static_cast<AnalogPayload&>(analogPacket->getPayload());
+    this->analogPacket->setTimestamp(this->analogPacket->getTimestamp() + samplesCount * this->deltaT);
+    auto& payload = static_cast<AnalogPayload&>(this->analogPacket->getPayload());
     payload.setUnit(asamCmpUnit);
-    callsMultiMap.processPacket(analogPacket);
+    this->callsMultiMap.processPacket(this->analogPacket);
 
-    auto descriptor = readDataDescriptor(reader, "DataDescriptor");
+    auto descriptor = this->readDataDescriptor(reader, "DataDescriptor");
     ASSERT_EQ(descriptor.getUnit().getSymbol(), openDaqUnit);
 }
 
 TYPED_TEST(StreamFbAnalogPayloadTest, SampleIntervalChanged)
 {
-    constexpr auto newSampleInterval = sampleInterval / 2;
-    static constexpr uint64_t newDeltaT = timeResolution * newSampleInterval;
+    constexpr auto newSampleInterval = this->sampleInterval / 2;
+    static constexpr uint64_t newDeltaT = this->timeResolution * newSampleInterval;
 
-    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
-    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
+    const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Float64, SampleType::UInt64);
 
-    callsMultiMap.processPacket(analogPacket);
+    this->callsMultiMap.processPacket(this->analogPacket);
     size_t count = 0;
     while (reader.read(nullptr, &count).getReadStatus() == ReadStatus::Event)
         ;
@@ -568,30 +568,30 @@ TYPED_TEST(StreamFbAnalogPayloadTest, SampleIntervalChanged)
     auto samplesCount = waitForSamples(reader);
     reader.skipSamples(&samplesCount);
 
-    analogPacket->setTimestamp(analogPacket->getTimestamp() + samplesCount * deltaT);
-    auto& payload = static_cast<AnalogPayload&>(analogPacket->getPayload());
+    this->analogPacket->setTimestamp(this->analogPacket->getTimestamp() + samplesCount * this->deltaT);
+    auto& payload = static_cast<AnalogPayload&>(this->analogPacket->getPayload());
     payload.setSampleInterval(newSampleInterval);
-    callsMultiMap.processPacket(analogPacket);
+    this->callsMultiMap.processPacket(this->analogPacket);
 
-    auto descriptor = readDataDescriptor(reader, "DomainDataDescriptor");
+    auto descriptor = this->readDataDescriptor(reader, "DomainDataDescriptor");
     ASSERT_EQ(descriptor.getRule().getParameters().get("delta"), newDeltaT);
 }
 
 TYPED_TEST(StreamFbAnalogPayloadTest, PostScalingChanged)
 {
-    constexpr float newSampleOffset = sampleOffset * 2;
-    constexpr float newSampleScalar = sampleScalar * 2;
+    constexpr float newSampleOffset = this->sampleOffset * 2;
+    constexpr float newSampleScalar = this->sampleScalar * 2;
 
     constexpr auto rawSampleType = SampleTypeFromType<TypeParam>::SampleType;
     constexpr auto intSize = rawSampleType == SampleType::Int16 ? 16 : 32;
     constexpr auto minValue = newSampleOffset;
     const auto maxValue = newSampleScalar * pow(2, intSize) + newSampleOffset;
 
-    interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
-    const auto outputSignal = funcBlock.getSignalsRecursive()[0];
+    this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
+    const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Float64, SampleType::UInt64);
 
-    callsMultiMap.processPacket(analogPacket);
+    this->callsMultiMap.processPacket(this->analogPacket);
     size_t count = 0;
     while (reader.read(nullptr, &count).getReadStatus() == ReadStatus::Event)
         ;
@@ -599,13 +599,13 @@ TYPED_TEST(StreamFbAnalogPayloadTest, PostScalingChanged)
     auto samplesCount = waitForSamples(reader);
     reader.skipSamples(&samplesCount);
 
-    analogPacket->setTimestamp(analogPacket->getTimestamp() + samplesCount * deltaT);
-    auto& payload = static_cast<AnalogPayload&>(analogPacket->getPayload());
+    this->analogPacket->setTimestamp(this->analogPacket->getTimestamp() + samplesCount * this->deltaT);
+    auto& payload = static_cast<AnalogPayload&>(this->analogPacket->getPayload());
     payload.setSampleOffset(newSampleOffset);
     payload.setSampleScalar(newSampleScalar);
-    callsMultiMap.processPacket(analogPacket);
+    this->callsMultiMap.processPacket(this->analogPacket);
 
-    auto descriptor = readDataDescriptor(reader, "DataDescriptor");
+    auto descriptor = this->readDataDescriptor(reader, "DataDescriptor");
 
     ASSERT_EQ(descriptor.getPostScaling(), LinearScaling(newSampleScalar, newSampleOffset, rawSampleType));
     ASSERT_EQ(descriptor.getValueRange(), Range(minValue, maxValue));
