@@ -102,7 +102,7 @@ bool AnalogMessagesTest::checkSamples(const ASAM::CMP::AnalogPayload& analogPayl
     auto rawData = reinterpret_cast<const T*>(analogPayload.getData());
     auto receivedSamplesCnt = analogPayload.getSamplesCount();
 
-    for (int i = 0; i < receivedSamplesCnt; ++i, rawData++)
+    for (size_t i = 0; i < receivedSamplesCnt; ++i, rawData++)
     {
         double calculatedValue = (*rawData) * analogPayload.getSampleScalar() + analogPayload.getSampleOffset();
         if (abs(sentAnalogSamples[receivedSamples++] - calculatedValue) > analogPayload.getSampleScalar())

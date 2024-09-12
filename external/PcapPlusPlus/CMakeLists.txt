@@ -17,8 +17,7 @@ endif()
 FetchContent_Declare(
     PcapPlusPlus
     GIT_REPOSITORY https://github.com/seladb/PcapPlusPlus.git
-    #GIT_TAG v23.09
-    GIT_TAG 73084012e20b6fbc22b8fe20fdb02dcddedf6a9d
+    GIT_TAG v24.09
 )
 FetchContent_GetProperties(PcapPlusPlus)
 if (NOT PcapPlusPlus_POPULATED)

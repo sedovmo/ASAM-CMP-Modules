@@ -108,7 +108,7 @@ TEST_F(DataSinkModuleFbTest, NetworkAdaptersProperties)
 
 TEST_F(DataSinkModuleFbTest, NestedFbCount)
 {
-    EXPECT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
+    EXPECT_EQ(funcBlock.getFunctionBlocks().getCount(), 2u);
 }
 
 TEST_F(DataSinkModuleFbTest, ProcessAggregatedMessage)
