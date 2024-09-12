@@ -15,23 +15,7 @@ EthernetPcppImpl::EthernetPcppImpl()
 
 std::vector<pcpp::PcapLiveDevice*> EthernetPcppImpl::createAvailableDevicesList() const
 {
-    auto& deviceList = pcapDeviceList.getPcapLiveDevicesList();
-    std::vector<pcpp::PcapLiveDevice*> devices;
-    for (const auto& device : deviceList)
-    {
-        try
-        {
-            auto newDevice = getPcapLiveDevice(device->getName());
-            devices.push_back(newDevice);
-            newDevice->close();
-        }
-        catch (...)
-        {
-
-        }
-    }
-
-    return devices;
+    return pcapDeviceList.getPcapLiveDevicesList();
 }
 
 pcpp::PcapLiveDevice* EthernetPcppImpl::getFirstAvailableDevice() const
