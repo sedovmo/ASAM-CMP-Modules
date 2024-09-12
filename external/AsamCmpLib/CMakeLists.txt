@@ -1,5 +1,7 @@
 list(APPEND CMAKE_MESSAGE_CONTEXT AsamCmpLib)
 
+set(ASAM_CMP_BUILD_EXAMPLE OFF)
+
 FetchContent_Declare(
     AsamCmpLib
     GIT_REPOSITORY git@github.com:openDAQ/ASAM-CMP-Library.git
