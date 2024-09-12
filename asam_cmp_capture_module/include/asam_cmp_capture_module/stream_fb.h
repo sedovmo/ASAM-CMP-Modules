@@ -36,7 +36,7 @@ BEGIN_NAMESPACE_ASAM_CMP_CAPTURE_MODULE
 
 struct StreamInit
 {
-    std::unordered_set<uint8_t>& streamIdsList;
+    std::set<uint8_t>& streamIdsList;
     std::mutex& statusSync;
     const uint32_t& interfaceId;
     const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper;
@@ -84,7 +84,7 @@ private:
 
 private:
     const uint32_t& interfaceId;
-    std::unordered_set<uint8_t>& streamIdsList;
+    std::set<uint8_t>& streamIdsList;
     std::mutex& statusSync;
     const EncoderBankPtr encoders;
     std::function<void()> parentInterfaceUpdater;

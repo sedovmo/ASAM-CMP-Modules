@@ -69,7 +69,7 @@ private:
     ASAM::CMP::Packet interfaceStatusPacket;
     ASAM::CMP::DeviceStatus& deviceStatus;
 
-    std::unordered_set<uint8_t> streamIdsList;
+    std::set<uint8_t> streamIdsList;
     std::string vendorDataAsString;
     std::vector<uint8_t> vendorData;
 
