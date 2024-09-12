@@ -5,6 +5,6 @@ set(ASAM_CMP_BUILD_EXAMPLE OFF)
 FetchContent_Declare(
     AsamCmpLib
     GIT_REPOSITORY git@github.com:openDAQ/ASAM-CMP-Library.git
-    GIT_TAG        ee1fe90ab43bddc4b371ad28a200fe0cf25170a8
+    GIT_TAG        df3948f78e1eaef6e7044393706a3a7785b5ec35
 )
 FetchContent_MakeAvailable(AsamCmpLib)
