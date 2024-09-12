@@ -12,6 +12,11 @@ It uses [PcapPlusPlus Library](https://pcapplusplus.github.io/) to transport CMP
 ## Required tools before building
  - [CMake 3.24](https://cmake.org/) or higher
  - [Git](https://git-scm.com/)
+ - libpcap
+    - [Npcap](https://npcap.com/#download) for Windows  
+      must be installed in WinPcap API-compatible Mode
+    - [libpcap developers pack](https://www.tcpdump.org/#latest-release) for Linux  
+      can be installed through a package manager `sudo apt-get install libpcap-dev`
  - Compiler:
    - (msvc) Visual Studio 2017 or higher with installed Workload for C++
    - gcc
@@ -20,14 +25,16 @@ It uses [PcapPlusPlus Library](https://pcapplusplus.github.io/) to transport CMP
 You can build Capture Module FB, DataSink FB or both by enabling the following options in CMake: `ASAM_CMP_BUILD_CAPTURE_MODULE`, `ASAM_CMP_BUILD_DATA_SINK`. You can use `ASAM_CMP_BUILD_EXAMPLE` cmake option to build a usage example.    
 To compile both modules in Windows using Visual Studio 2022 use command line:
 ```
-cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DASAM_CMP_BUILD_CAPTURE_MODULE=ON -DASAM_CMP_BUILD_DATA_SINK=ON
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build
 ```
 To compile both modules in Linux use command line:
 ```
-cmake -S . -B build -DASAM_CMP_BUILD_CAPTURE_MODULE=ON -DASAM_CMP_BUILD_DATA_SINK=ON
+cmake -S . -B build
 cmake --build build
 ```
+**Note**:
+To allow a process to send/receive packets with libpcap in Linux, you must set the process capabilities to use RAW and PACKET sockets with the command `sudo setcap cap_net_raw,cap_net_admin=eip path_to_the_process`.
 
 ## Usage
 <details>
@@ -89,7 +96,7 @@ To get ASAM CMP packets from the Ethernet follow the steps below:
 Both modules have nested structure and are based on the same set of function blocks, which have the same properties, but different behavior: Capture FB, Interface FB and Stream FB.
 
 ### Capture Module Structure
-Note: For a Capture FB all device IDs must be unique in the network.  
+**Note**: For a Capture FB all device IDs must be unique in the network.  
 You can add multiple Interface FBs to the Capture FB.  
 You can add multiple Stream FBs to the Interface FB.  
 
