@@ -102,7 +102,7 @@ bool AnalogMessagesTest::checkSamples(const ASAM::CMP::AnalogPayload& analogPayl
     auto rawData = reinterpret_cast<const T*>(analogPayload.getData());
     auto receivedSamplesCnt = analogPayload.getSamplesCount();
 
-    for (int i = 0; i < receivedSamplesCnt; ++i, rawData++)
+    for (size_t i = 0; i < receivedSamplesCnt; ++i, rawData++)
     {
         double calculatedValue = (*rawData) * analogPayload.getSampleScalar() + analogPayload.getSampleOffset();
         if (abs(sentAnalogSamples[receivedSamples++] - calculatedValue) > analogPayload.getSampleScalar())
@@ -198,8 +198,8 @@ void AnalogMessagesTest::testAnalogPackets(bool setScale)
     while (!checker() && timeElapsed < 2500'000'000)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        auto curTime = std::chrono::steady_clock::now();
-        timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(curTime - stTime).count();
+        auto curTime1 = std::chrono::steady_clock::now();
+        timeElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(curTime1 - stTime).count();
     }
 
     ASSERT_EQ(receivedSamples, sentAnalogSamples.size());

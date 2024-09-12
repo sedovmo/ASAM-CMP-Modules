@@ -69,7 +69,7 @@ StreamCommonFbImpl<Interfaces...>::StreamCommonFbImpl(const ContextPtr& ctx,
                                                       const ComponentPtr& parent,
                                                       const StringPtr& localId,
                                                       const StreamCommonInit& init)
-    : FunctionBlockImpl(CreateType(), ctx, parent, localId)
+    : FunctionBlockImpl<IFunctionBlock, IStreamCommon, Interfaces...>(CreateType(), ctx, parent, localId)
     , streamIdManager(init.streamIdManager)
     , streamId(init.id)
     , payloadType(init.payloadType)
@@ -97,15 +97,15 @@ void StreamCommonFbImpl<Interfaces...>::initProperties()
                     .setMinValue(static_cast<Int>(std::numeric_limits<uint8_t>::min()))
                     .setMaxValue(static_cast<Int>(std::numeric_limits<uint8_t>::max()))
                     .build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
+    this->objPtr.addProperty(prop);
+    this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { updateStreamIdInternal(); };
 }
 
 template <typename... Interfaces>
 void StreamCommonFbImpl<Interfaces...>::updateStreamIdInternal()
 {
-    Int newId = objPtr.getPropertyValue("StreamId");
+    Int newId = this->objPtr.getPropertyValue("StreamId");
 
     if (newId == streamId)
         return;

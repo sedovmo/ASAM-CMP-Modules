@@ -75,17 +75,17 @@ TEST_F(CaptureFbTest, TestCreateInterface)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");
 
-    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0u);
     createProc();
     createProc();
-    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 2);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 2u);
 
     int lstId = captureFb.getFunctionBlocks().getItemAt(1).getPropertyValue("InterfaceId");
 
     ProcedurePtr removeProc = captureFb.getPropertyValue("RemoveInterface");
     removeProc(0);
 
-    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 1);
+    ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 1u);
     ASSERT_EQ(captureFb.getFunctionBlocks().getItemAt(0).getPropertyValue("InterfaceId"), lstId);
 }
 
@@ -131,7 +131,7 @@ TEST_F(CaptureFbTest, TestCaptureStatusReceived)
 
         const uint8_t* receivedVendorData = static_cast<ASAM::CMP::CaptureModulePayload&>(lastReceivedPacket.getPayload()).getVendorData();
 
-        for (int i = 0; i < vendorDataLen; ++i)
+        for (size_t i = 0; i < vendorDataLen; ++i)
         {
             if (vendorData[i] != receivedVendorData[i])
                 return false;

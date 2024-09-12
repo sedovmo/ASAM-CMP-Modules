@@ -21,6 +21,7 @@
 
 #include <asam_cmp/payload_type.h>
 #include <asam_cmp_common_lib/id_manager.h>
+#include <asam_cmp_common_lib/stream_common_fb_impl.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_COMMON
 

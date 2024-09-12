@@ -22,6 +22,9 @@
 #include <asam_cmp_common_lib/capture_common_fb.h>
 #include <asam_cmp/capture_module_payload.h>
 
+#include <thread>
+#include <condition_variable>
+
 namespace daq::asam_cmp_common_lib
 {
     class EthernetPcppItf;
