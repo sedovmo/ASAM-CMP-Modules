@@ -37,7 +37,6 @@ private:
     pcpp::PcapLiveDevice* getPcapLiveDevice(const StringPtr& deviceName) const;
 
 public:
-    inline static const pcpp::MacAddress broadcastMac{"FF:FF:FF:FF:FF:FF"};
     static constexpr uint16_t asamCmpEtherType = 0x99FE;
 
 private:

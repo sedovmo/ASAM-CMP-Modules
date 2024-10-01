@@ -38,12 +38,10 @@ pcpp::PcapLiveDevice* EthernetPcppImpl::getFirstAvailableDevice() const
 void setFilters(pcpp::PcapLiveDevice* device)
 {
     // create a filters
-    pcpp::MacAddressFilter macAddressFilter{EthernetPcppImpl::broadcastMac, pcpp::Direction(pcpp::DST)};
     pcpp::EtherTypeFilter ethernetTypeFilter(EthernetPcppImpl::asamCmpEtherType);
 
     // create an AND filter to combine both filters
     pcpp::AndFilter andFilter;
-    andFilter.addFilter(&macAddressFilter);
     andFilter.addFilter(&ethernetTypeFilter);
     // set the filter on the device
     device->setFilter(andFilter);

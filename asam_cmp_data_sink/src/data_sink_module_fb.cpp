@@ -131,7 +131,6 @@ std::vector<std::shared_ptr<ASAM::CMP::Packet>> DataSinkModuleFb::decode(pcpp::R
 {
     pcpp::Packet parsedPacket(packet);
     pcpp::EthLayer* ethLayer = static_cast<pcpp::EthLayer*>(parsedPacket.getLayerOfType(pcpp::Ethernet));
-    assert(ethLayer->getDestMac() == asam_cmp_common_lib::EthernetPcppImpl::broadcastMac);
     assert(pcpp::netToHost16(ethLayer->getEthHeader()->etherType) == asam_cmp_common_lib::EthernetPcppImpl::asamCmpEtherType);
 
     return decoder.decode(ethLayer->getLayerPayload(), ethLayer->getLayerPayloadSize());
