@@ -26,7 +26,7 @@ InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
 
 FunctionBlockTypePtr InterfaceCommonFb::CreateType()
 {
-    return FunctionBlockType("asam_cmp_interface", "AsamCmpInterface", "Asam CMP Interface");
+    return FunctionBlockType("asam_cmp_interface", "AsamCmpInterface", "ASAM CMP Interface");
 }
 
 void InterfaceCommonFb::initProperties()

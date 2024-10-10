@@ -25,7 +25,7 @@ void DataSinkFb::addCaptureModuleFromStatus(int index)
     std::scoped_lock lock{sync};
 
     auto deviceStatus = status.getDeviceStatus(index);
-    const StringPtr fbId = fmt::format("capture_module_{}", captureModuleId);
+    const StringPtr fbId = getFbId(captureModuleId);
     const auto newFb =
         createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, callsMap, std::move(deviceStatus));
     functionBlocks.addItem(newFb);
@@ -36,7 +36,7 @@ void DataSinkFb::addCaptureModuleEmpty()
 {
     std::scoped_lock lock{sync};
 
-    const StringPtr fbId = fmt::format("capture_module_{}", captureModuleId);
+    const StringPtr fbId = getFbId(captureModuleId);
     const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, callsMap);
     functionBlocks.addItem(newFb);
     ++captureModuleId;
@@ -60,6 +60,11 @@ void DataSinkFb::removeCaptureModule(int fbIndex)
         }
     }
     functionBlocks.removeItem(captureFb);
+}
+
+StringPtr DataSinkFb::getFbId(size_t id)
+{
+    return fmt::format("asam_cmp_capture_{}", id);
 }
 
 void DataSinkFb::initProperties()

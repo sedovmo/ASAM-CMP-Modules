@@ -16,7 +16,7 @@ int main()
     const auto instance = Instance();
     const auto device = instance.addDevice("daqref://device0");
 
-    auto asamCmpCaptureModule = instance.addFunctionBlock("asam_cmp_capture_module_fb");
+    auto asamCmpCaptureModule = instance.addFunctionBlock("asam_cmp_capture_module");
     auto asamCmpDataSink = instance.addFunctionBlock("asam_cmp_data_sink_module");
 
     if (asamCmpCaptureModule.getPropertySelectionValue("NetworkAdapters") != asamCmpDataSink.getPropertySelectionValue("NetworkAdapters"))
@@ -25,7 +25,7 @@ int main()
     }
 
     auto captureFb = asamCmpCaptureModule.getFunctionBlocks(
-        search::Custom([](const ComponentPtr& comp) { return comp.getLocalId() == "asam_cmp_capture_fb"; }))[0];
+        search::Custom([](const ComponentPtr& comp) { return comp.getLocalId() == "asam_cmp_capture"; }))[0];
 
     ProcedurePtr createItfProc = captureFb.getPropertyValue("AddInterface");
     createItfProc();

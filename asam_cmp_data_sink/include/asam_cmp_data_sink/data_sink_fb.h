@@ -39,6 +39,8 @@ private:
     void addCaptureModuleEmpty();
     void removeCaptureModule(int fbIndex);
 
+    [[nodiscard]] static StringPtr getFbId(size_t id);
+
 private:
     size_t captureModuleId{0};
     StatusMt status;

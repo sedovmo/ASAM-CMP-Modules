@@ -36,6 +36,14 @@ TEST_F(InterfaceFbTest, NotNull)
     ASSERT_NE(interfaceFb, nullptr);
 }
 
+TEST_F(InterfaceFbTest, FunctionBlockType)
+{
+    auto type = interfaceFb.getFunctionBlockType();
+    ASSERT_EQ(type.getId(), "asam_cmp_interface");
+    ASSERT_EQ(type.getName(), "AsamCmpInterface");
+    ASSERT_EQ(type.getDescription(), "ASAM CMP Interface");
+}
+
 TEST_F(InterfaceFbTest, CaptureModuleProperties)
 {
     ASSERT_TRUE(interfaceFb.hasProperty("InterfaceId"));

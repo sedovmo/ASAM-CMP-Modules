@@ -17,7 +17,7 @@ CaptureCommonFb::CaptureCommonFb(const ContextPtr& ctx, const ComponentPtr& pare
 
 FunctionBlockTypePtr CaptureCommonFb::CreateType()
 {
-    return FunctionBlockType("capture_module", "CaptureModule", "Capture Module");
+    return FunctionBlockType("asam_cmp_capture", "AsamCmpCapture", "ASAM CMP Capture");
 }
 
 void CaptureCommonFb::initProperties()

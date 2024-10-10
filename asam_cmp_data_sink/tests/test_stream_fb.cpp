@@ -89,7 +89,7 @@ TEST_F(StreamFbTest, FunctionBlockType)
     auto type = funcBlock.getFunctionBlockType();
     ASSERT_EQ(type.getId(), "asam_cmp_stream");
     ASSERT_EQ(type.getName(), "AsamCmpStream");
-    ASSERT_EQ(type.getDescription(), "Asam CMP Stream");
+    ASSERT_EQ(type.getDescription(), "ASAM CMP Stream");
 }
 
 TEST_F(StreamFbTest, StreamIdProperty)
