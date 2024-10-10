@@ -42,6 +42,7 @@ protected:
     void removeInterfaceInternal(size_t nInd) override;
 
 private:
+    void setProperties();
     void createFbs();
 
 private:

@@ -13,11 +13,6 @@ CaptureFb::CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const St
     : asam_cmp_common_lib::CaptureCommonFb(ctx, parent, localId)
     , ethernetWrapper(init.ethernetWrapper)
     , selectedEthernetDeviceName(init.selectedDeviceName)
-    , deviceDescription("DefaultDeviceDescription")
-    , serialNumber("DefaultSerailNumber")
-    , hardwareVersion("DefaultHardwwareVersion")
-    , softwareVersion("DefaultSoftwareVersion")
-    , vendorDataAsString("")
     , allowJumboFrames(false)
 {
     initProperties();
@@ -33,35 +28,15 @@ CaptureFb::~CaptureFb()
 
 void CaptureFb::initProperties()
 {
-    StringPtr propName = "DeviceDescription";
-    auto prop = StringPropertyBuilder(propName, deviceDescription).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
-        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
-
-    propName = "SerialNumber";
-    prop = StringPropertyBuilder(propName, serialNumber).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
-        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
-
-    propName = "HardwareVersion";
-    prop = StringPropertyBuilder(propName, hardwareVersion).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
-        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
-
-    propName = "SoftwareVersion";
-    prop = StringPropertyBuilder(propName, softwareVersion).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
-        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
-
-    propName = "VendorData";
-    prop = StringPropertyBuilder(propName, vendorDataAsString).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
-        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
+    initDeviceInfoProperties(false);
+    deviceDescription = "DefaultDeviceDescription";
+    setPropertyValueInternal(String("DeviceDescription").asPtr<IString>(true), deviceDescription, false, false, false);
+    serialNumber = "DefaultSerialNumber";
+    setPropertyValueInternal(String("SerialNumber").asPtr<IString>(true), serialNumber, false, false, false);
+    hardwareVersion = "DefaultHardwareVersion";
+    setPropertyValueInternal(String("HardwareVersion").asPtr<IString>(true), hardwareVersion, false, false, false);
+    softwareVersion = "DefaultSoftwareVersion";
+    setPropertyValueInternal(String("SoftwareVersion").asPtr<IString>(true), softwareVersion, false, false, false);
 }
 
 void CaptureFb::propertyChanged()
@@ -69,14 +44,6 @@ void CaptureFb::propertyChanged()
     asam_cmp_common_lib::CaptureCommonFb::propertyChanged();
 
     initEncoders();
-
-    deviceDescription = objPtr.getPropertyValue("DeviceDescription");
-    serialNumber = objPtr.getPropertyValue("SerialNumber");
-    hardwareVersion = objPtr.getPropertyValue("HardwareVersion");
-    softwareVersion = objPtr.getPropertyValue("SoftwareVersion");
-    vendorDataAsString = objPtr.getPropertyValue("VendorData").asPtr<IString>().toStdString();
-    vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
-
     updateCaptureData();
 }
 

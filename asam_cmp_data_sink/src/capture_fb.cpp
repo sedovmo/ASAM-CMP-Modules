@@ -1,3 +1,5 @@
+#include <asam_cmp/capture_module_payload.h>
+
 #include <asam_cmp_data_sink/capture_fb.h>
 #include <asam_cmp_data_sink/interface_fb.h>
 
@@ -7,6 +9,7 @@ CaptureFb::CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const St
     : CaptureCommonFb(ctx, parent, localId)
     , callsMap(callsMap)
 {
+    initDeviceInfoProperties(true);
 }
 
 CaptureFb::CaptureFb(const ContextPtr& ctx,
@@ -18,6 +21,8 @@ CaptureFb::CaptureFb(const ContextPtr& ctx,
     , deviceStatus(std::move(deviceStatus))
     , callsMap(callsMap)
 {
+    initDeviceInfoProperties(true);
+    setProperties();
     createFbs();
 }
 
@@ -61,10 +66,37 @@ void CaptureFb::removeInterfaceInternal(size_t nInd)
     CaptureCommonFb::removeInterfaceInternal(nInd);
 }
 
-void CaptureFb::createFbs()
+void CaptureFb::setProperties()
 {
     objPtr.setPropertyValue("DeviceId", deviceStatus.getPacket().getDeviceId());
 
+    auto& cmPayload = static_cast<const ASAM::CMP::CaptureModulePayload&>(deviceStatus.getPacket().getPayload());
+    setPropertyValueInternal(String("DeviceDescription").asPtr<IString>(true),
+                             String(cmPayload.getDeviceDescription().data()).asPtr<IString>(true),
+                             false,
+                             true,
+                             false);
+    setPropertyValueInternal(
+        String("SerialNumber").asPtr<IString>(true), String(cmPayload.getSerialNumber().data()).asPtr<IString>(true), false, true, false);
+    setPropertyValueInternal(String("HardwareVersion").asPtr<IString>(true),
+                             String(cmPayload.getHardwareVersion().data()).asPtr<IString>(true),
+                             false,
+                             true,
+                             false);
+    setPropertyValueInternal(String("SoftwareVersion").asPtr<IString>(true),
+                             String(cmPayload.getSoftwareVersion().data()).asPtr<IString>(true),
+                             false,
+                             true,
+                             false);
+    setPropertyValueInternal(String("VendorData").asPtr<IString>(true),
+                             String(std::string(cmPayload.getVendorDataStringView())).asPtr<IString>(true),
+                             false,
+                             true,
+                             false);
+}
+
+void CaptureFb::createFbs()
+{
     for (size_t i = 0; i < deviceStatus.getInterfaceStatusCount(); ++i)
     {
         auto ifStatus = deviceStatus.getInterfaceStatus(i);

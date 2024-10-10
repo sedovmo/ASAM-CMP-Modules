@@ -71,6 +71,30 @@ TEST_F(CaptureFbTest, CreateCaptureModule)
     ASSERT_NE(captureFb, nullptr);
 }
 
+TEST_F(CaptureFbTest, DefaultPropertiesValues)
+{
+    constexpr Int defaultDeviceId = 0;
+    const StringPtr defaultDefaultDeviceDescription = "DefaultDeviceDescription";
+    const StringPtr defaultDefaultSerialNumber = "DefaultSerialNumber";
+    const StringPtr defaultDefaultHardwareVersion = "DefaultHardwareVersion";
+    const StringPtr defaultDefaultSoftwareVersion = "DefaultSoftwareVersion";
+    const StringPtr defaultDefaultVendorData = "";
+
+    const Int id = captureFb.getPropertyValue("DeviceId");
+    const StringPtr deviceDescription = captureFb.getPropertyValue("DeviceDescription");
+    const StringPtr serialNumber = captureFb.getPropertyValue("SerialNumber");
+    const StringPtr hardwareVersion = captureFb.getPropertyValue("HardwareVersion");
+    const StringPtr softwareVersion = captureFb.getPropertyValue("SoftwareVersion");
+    const StringPtr vendorData = captureFb.getPropertyValue("VendorData");
+
+    ASSERT_EQ(id, defaultDeviceId);
+    ASSERT_EQ(deviceDescription, defaultDefaultDeviceDescription);
+    ASSERT_EQ(serialNumber, defaultDefaultSerialNumber);
+    ASSERT_EQ(hardwareVersion, defaultDefaultHardwareVersion);
+    ASSERT_EQ(softwareVersion, defaultDefaultSoftwareVersion);
+    ASSERT_EQ(vendorData, defaultDefaultVendorData);
+}
+
 TEST_F(CaptureFbTest, TestCreateInterface)
 {
     ProcedurePtr createProc = captureFb.getPropertyValue("AddInterface");

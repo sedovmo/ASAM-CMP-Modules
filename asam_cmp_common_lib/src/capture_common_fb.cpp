@@ -8,9 +8,6 @@ BEGIN_NAMESPACE_ASAM_CMP_COMMON
 
 CaptureCommonFb::CaptureCommonFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId)
     : FunctionBlock(CreateType(), ctx, parent, localId)
-    , isUpdating(false)
-    , needsPropertyChanged(false)
-    , createdInterfaces(0)
 {
     initProperties();
 }
@@ -42,6 +39,39 @@ void CaptureCommonFb::initProperties()
     objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this](IntPtr nInd) { removeInterface(nInd); }));
 }
 
+void CaptureCommonFb::initDeviceInfoProperties(bool readOnly)
+{
+    StringPtr propName = "DeviceDescription";
+    auto prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
+    objPtr.addProperty(prop);
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
+
+    propName = "SerialNumber";
+    prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
+    objPtr.addProperty(prop);
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
+
+    propName = "HardwareVersion";
+    prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
+    objPtr.addProperty(prop);
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
+
+    propName = "SoftwareVersion";
+    prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
+    objPtr.addProperty(prop);
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
+
+    propName = "VendorData";
+    prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
+    objPtr.addProperty(prop);
+    objPtr.getOnPropertyValueWrite(propName) +=
+        [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
+}
+
 void CaptureCommonFb::addInterface()
 {
     std::scoped_lock lock{sync};
@@ -57,6 +87,16 @@ void CaptureCommonFb::removeInterface(size_t nInd)
 void CaptureCommonFb::updateDeviceIdInternal()
 {
     deviceId = objPtr.getPropertyValue("DeviceId");
+}
+
+void CaptureCommonFb::updateDeviceInfoInternal()
+{
+    deviceDescription = objPtr.getPropertyValue("DeviceDescription");
+    serialNumber = objPtr.getPropertyValue("SerialNumber");
+    hardwareVersion = objPtr.getPropertyValue("HardwareVersion");
+    softwareVersion = objPtr.getPropertyValue("SoftwareVersion");
+    vendorDataAsString = objPtr.getPropertyValue("VendorData").asPtr<IString>().toStdString();
+    vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
 }
 
 void CaptureCommonFb::removeInterfaceInternal(size_t nInd)
@@ -94,6 +134,7 @@ void CaptureCommonFb::endApplyProperties(const UpdatingActions& propsAndValues, 
 void CaptureCommonFb::propertyChanged()
 {
     updateDeviceIdInternal();
+    updateDeviceInfoInternal();
 }
 
 void CaptureCommonFb::propertyChangedIfNotUpdating()

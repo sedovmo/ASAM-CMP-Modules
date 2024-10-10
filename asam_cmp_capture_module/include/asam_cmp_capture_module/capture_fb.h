@@ -66,12 +66,6 @@ private:
     EncoderBank encoders;
     ASAM::CMP::Packet captureStatusPacket;
     ASAM::CMP::DeviceStatus captureStatus;
-    StringPtr deviceDescription;
-    StringPtr serialNumber;
-    StringPtr hardwareVersion;
-    StringPtr softwareVersion;
-    std::string vendorDataAsString;
-    std::vector<uint8_t> vendorData;
 
     std::thread statusThread;
     std::mutex statusSync;

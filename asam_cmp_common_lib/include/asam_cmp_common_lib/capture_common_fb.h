@@ -32,10 +32,12 @@ public:
     static FunctionBlockTypePtr CreateType();
 
 protected:
+    void initDeviceInfoProperties(bool readOnly);
     template <class Impl, typename... Params>
     FunctionBlockPtr addInterfaceWithParams(uint32_t interfaceId, Params&&... params);
     virtual void addInterfaceInternal() = 0;
     virtual void updateDeviceIdInternal();
+    virtual void updateDeviceInfoInternal();
     virtual void removeInterfaceInternal(size_t nInd);
 
     daq::ErrCode INTERFACE_FUNC beginUpdate() override;
@@ -51,13 +53,20 @@ private:
 protected:
     InterfaceIdManager interfaceIdManager;
     StreamIdManager streamIdManager;
-    uint16_t deviceId{0};
 
-    std::atomic_bool isUpdating;
-    std::atomic_bool needsPropertyChanged;
+    uint16_t deviceId{0};
+    StringPtr deviceDescription{""};
+    StringPtr serialNumber{""};
+    StringPtr hardwareVersion{""};
+    StringPtr softwareVersion{""};
+    std::string vendorDataAsString{""};
+    std::vector<uint8_t> vendorData;
+
+    std::atomic_bool isUpdating{false};
+    std::atomic_bool needsPropertyChanged{false};
 
 private:
-    size_t createdInterfaces;
+    size_t createdInterfaces{0};
 };
 
 template <class Impl, typename... Params>

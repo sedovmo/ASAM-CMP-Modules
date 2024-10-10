@@ -1,6 +1,6 @@
-#include <asam_cmp_data_sink/status_handler.h>
 #include <asam_cmp_data_sink/data_sink_fb.h>
 #include <asam_cmp_data_sink/status_fb_impl.h>
+#include <asam_cmp_data_sink/status_handler.h>
 
 #include <asam_cmp/capture_module_payload.h>
 #include <asam_cmp/interface_payload.h>
@@ -22,19 +22,16 @@ protected:
     {
         auto logger = Logger();
         context = Context(Scheduler(logger), logger, TypeManager(), nullptr);
-        statusFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::StatusFbImpl>(
-            context, nullptr, "asam_cmp_status");
+        statusFb =
+            createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::StatusFbImpl>(context, nullptr, "asam_cmp_status");
         statusHandler = statusFb.asPtrOrNull<IStatusHandler>();
 
         funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::DataSinkFb>(
-            context,
-            nullptr,
-            "asam_cmp_data_sink",
-            statusHandler->getStatusMt(),
-            callsMultiMap);
+            context, nullptr, "asam_cmp_data_sink", statusHandler->getStatusMt(), callsMultiMap);
 
         CaptureModulePayload cmPayload;
-        cmPayload.setData(deviceDescr, "", "", "", {});
+        std::vector<uint8_t> vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
+        cmPayload.setData(deviceDescr, serialNumber, hardwareVersion, softwareVersion, vendorData);
         cmPacket = std::make_shared<Packet>();
         cmPacket->setVersion(1);
         cmPacket->setPayload(cmPayload);
@@ -53,6 +50,10 @@ protected:
 
 protected:
     static constexpr std::string_view deviceDescr = "Device Description";
+    static constexpr std::string_view serialNumber = "Serial Number";
+    static constexpr std::string_view hardwareVersion = "Hardware Version";
+    static constexpr std::string_view softwareVersion = "Software Version";
+    static constexpr std::string_view vendorDataAsString = "Vendor Data";
 
 protected:
     modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
@@ -92,6 +93,17 @@ TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
     addCaptureModuleFromStatus(0);
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
     auto captureModule = funcBlock.getFunctionBlocks()[0];
+
+    StringPtr propVal = captureModule.getPropertyValue("DeviceDescription");
+    ASSERT_EQ(propVal.toStdString(), deviceDescr);
+    propVal = captureModule.getPropertyValue("SerialNumber");
+    ASSERT_EQ(propVal.toStdString(), serialNumber);
+    propVal = captureModule.getPropertyValue("HardwareVersion");
+    ASSERT_EQ(propVal.toStdString(), hardwareVersion);
+    propVal = captureModule.getPropertyValue("SoftwareVersion");
+    ASSERT_EQ(propVal.toStdString(), softwareVersion);
+    propVal = captureModule.getPropertyValue("VendorData");
+    ASSERT_EQ(propVal.toStdString(), vendorDataAsString);
 
     int targetInterfaceId = 0;
     FunctionPtr isCorrectInterface =
