@@ -59,7 +59,8 @@ void DataSinkModuleFb::createFbs()
     auto statusMt = functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->getStatusMt();
 
     const StringPtr dataSinkId = "asam_cmp_data_sink";
-    newFb = createWithImplementation<IFunctionBlock, DataSinkFb>(context, functionBlocks, dataSinkId, statusMt, publisher);
+    newFb = createWithImplementation<IFunctionBlock, DataSinkFb>(
+        context, functionBlocks, dataSinkId, statusMt, dataPacketsPublisher, capturePacketsPublisher);
     functionBlocks.addItem(newFb);
 }
 
@@ -105,7 +106,7 @@ void DataSinkModuleFb::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDe
 
     if (acPackets.front()->getMessageType() == ASAM::CMP::CmpHeader::MessageType::data && samePayloadType)
     {
-        publisher.publish({deviceId, interfaceId, streamId}, acPackets);
+        dataPacketsPublisher.publish({deviceId, interfaceId, streamId}, acPackets);
     }
     else
     {
@@ -114,10 +115,12 @@ void DataSinkModuleFb::onPacketArrives(pcpp::RawPacket* packet, pcpp::PcapLiveDe
             switch (acPacket->getMessageType())
             {
                 case ASAM::CMP::CmpHeader::MessageType::data:
-                    publisher.publish({deviceId, interfaceId, streamId}, acPacket);
+                    dataPacketsPublisher.publish({deviceId, interfaceId, streamId}, acPacket);
                     break;
                 case ASAM::CMP::CmpHeader::MessageType::status:
                     functionBlocks.getItems()[0].asPtr<IStatusHandler>(true)->processStatusPacket(acPacket);
+                    if (payloadType == ASAM::CMP::PayloadType::cmStatMsg)
+                        capturePacketsPublisher.publish(deviceId, acPacket);
                     break;
                 default:
                     LOG_I("ASAM CMP Message Type {} is not supported", to_underlying(acPacket->getMessageType()));

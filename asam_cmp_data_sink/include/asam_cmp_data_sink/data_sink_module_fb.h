@@ -19,6 +19,7 @@
 #include <asam_cmp/decoder.h>
 #include <asam_cmp_common_lib/network_manager_fb.h>
 
+#include <asam_cmp_data_sink/capture_packets_publisher.h>
 #include <asam_cmp_data_sink/common.h>
 #include <asam_cmp_data_sink/data_packets_publisher.h>
 
@@ -50,7 +51,8 @@ private:
     bool captureStartedOnThisFb;
     ASAM::CMP::Decoder decoder;
 
-    DataPacketsPublisher publisher;
+    DataPacketsPublisher dataPacketsPublisher;
+    CapturePacketsPublisher capturePacketsPublisher;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

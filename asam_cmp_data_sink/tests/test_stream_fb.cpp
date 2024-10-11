@@ -1,5 +1,6 @@
 #include <asam_cmp_data_sink/asam_cmp_packets_subscriber.h>
 #include <asam_cmp_data_sink/capture_fb.h>
+#include <asam_cmp_data_sink/capture_packets_publisher.h>
 #include <asam_cmp_data_sink/common.h>
 #include <asam_cmp_data_sink/data_packets_publisher.h>
 
@@ -21,6 +22,7 @@ using namespace daq;
 using ASAM::CMP::AnalogPayload;
 using ASAM::CMP::CanPayload;
 using ASAM::CMP::Packet;
+using daq::modules::asam_cmp_data_sink_module::CapturePacketsPublisher;
 using daq::modules::asam_cmp_data_sink_module::DataPacketsPublisher;
 using daq::modules::asam_cmp_data_sink_module::IAsamCmpPacketsSubscriber;
 
@@ -51,7 +53,7 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher);
+            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher, capturePacketsPublisher);
 
         captureFb.getPropertyValue("AddInterface").execute();
         interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
@@ -74,6 +76,7 @@ protected:
 
 protected:
     DataPacketsPublisher publisher;
+    CapturePacketsPublisher capturePacketsPublisher;
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interfaceFb;
     FunctionBlockPtr funcBlock;

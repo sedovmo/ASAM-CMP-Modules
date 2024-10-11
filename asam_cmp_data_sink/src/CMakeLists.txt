@@ -17,6 +17,7 @@ set(SRC_PublicHeaders module_dll.h
                       data_sink_module_fb.h
                       asam_cmp_packets_subscriber.h
                       data_packets_publisher.h
+                      capture_packets_publisher.h
                       status_handler.h
                       status_fb_impl.h
                       data_sink_fb.h

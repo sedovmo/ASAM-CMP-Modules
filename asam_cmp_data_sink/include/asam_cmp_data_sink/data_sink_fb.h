@@ -18,6 +18,7 @@
 #include <asam_cmp/status.h>
 #include <opendaq/function_block_impl.h>
 
+#include <asam_cmp_data_sink/capture_packets_publisher.h>
 #include <asam_cmp_data_sink/common.h>
 #include <asam_cmp_data_sink/data_packets_publisher.h>
 #include <asam_cmp_data_sink/status_handler.h>
@@ -27,8 +28,12 @@ BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 class DataSinkFb final : public FunctionBlock
 {
 public:
-    explicit DataSinkFb(
-        const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt, DataPacketsPublisher& publisher);
+    explicit DataSinkFb(const ContextPtr& ctx,
+                        const ComponentPtr& parent,
+                        const StringPtr& localId,
+                        StatusMt statusMt,
+                        DataPacketsPublisher& dataPacketsPublisher,
+                        CapturePacketsPublisher& capturePacketsPublisher);
     ~DataSinkFb() override = default;
 
     static FunctionBlockTypePtr CreateType();
@@ -44,7 +49,8 @@ private:
 private:
     size_t captureModuleId{0};
     StatusMt status;
-    DataPacketsPublisher& publisher;
+    DataPacketsPublisher& dataPacketsPublisher;
+    CapturePacketsPublisher& capturePacketsPublisher;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

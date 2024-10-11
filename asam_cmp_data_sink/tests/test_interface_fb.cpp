@@ -19,7 +19,7 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher);
+            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher, capturePacketsPublisher);
 
         captureFb.getPropertyValue("AddInterface").execute();
         interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
@@ -29,6 +29,7 @@ protected:
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interfaceFb;
     modules::asam_cmp_data_sink_module::DataPacketsPublisher publisher;
+    modules::asam_cmp_data_sink_module::CapturePacketsPublisher capturePacketsPublisher;
 };
 
 TEST_F(InterfaceFbTest, NotNull)

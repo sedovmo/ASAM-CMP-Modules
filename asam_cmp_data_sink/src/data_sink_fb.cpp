@@ -6,11 +6,16 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-DataSinkFb::DataSinkFb(
-    const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt, DataPacketsPublisher& publisher)
+DataSinkFb::DataSinkFb(const ContextPtr& ctx,
+                       const ComponentPtr& parent,
+                       const StringPtr& localId,
+                       StatusMt statusMt,
+                       DataPacketsPublisher& dataPacketsPublisher,
+                       CapturePacketsPublisher& capturePacketsPublisher)
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , status(statusMt)
-    , publisher(publisher)
+    , dataPacketsPublisher(dataPacketsPublisher)
+    , capturePacketsPublisher(capturePacketsPublisher)
 {
     initProperties();
 }
@@ -26,9 +31,10 @@ void DataSinkFb::addCaptureModuleFromStatus(int index)
 
     auto deviceStatus = status.getDeviceStatus(index);
     const StringPtr fbId = getFbId(captureModuleId);
-    const auto newFb =
-        createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, publisher, std::move(deviceStatus));
+    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(
+        context, functionBlocks, fbId, dataPacketsPublisher, capturePacketsPublisher, std::move(deviceStatus));
     functionBlocks.addItem(newFb);
+    capturePacketsPublisher.subscribe(newFb.getPropertyValue("DeviceId"), newFb.as<IAsamCmpPacketsSubscriber>(true));
     ++captureModuleId;
 }
 
@@ -37,8 +43,10 @@ void DataSinkFb::addCaptureModuleEmpty()
     std::scoped_lock lock{sync};
 
     const StringPtr fbId = getFbId(captureModuleId);
-    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, publisher);
+    const auto newFb =
+        createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, dataPacketsPublisher, capturePacketsPublisher);
     functionBlocks.addItem(newFb);
+    capturePacketsPublisher.subscribe(newFb.getPropertyValue("DeviceId"), newFb.as<IAsamCmpPacketsSubscriber>(true));
     ++captureModuleId;
 }
 
@@ -48,6 +56,7 @@ void DataSinkFb::removeCaptureModule(int fbIndex)
 
     FunctionBlockPtr captureFb = functionBlocks.getItems().getItemAt(fbIndex);
     uint16_t deviceId = captureFb.getPropertyValue("DeviceId");
+    capturePacketsPublisher.unsubscribe(deviceId, captureFb.as<IAsamCmpPacketsSubscriber>(true));
 
     for (const FunctionBlockPtr& interfaceFb : captureFb.getFunctionBlocks())
     {
@@ -56,7 +65,7 @@ void DataSinkFb::removeCaptureModule(int fbIndex)
         {
             uint8_t streamId = static_cast<Int>(streamFb.getPropertyValue("StreamId"));
             auto handler = streamFb.as<IAsamCmpPacketsSubscriber>(true);
-            publisher.unsubscribe({deviceId, interfaceId, streamId}, handler);
+            dataPacketsPublisher.unsubscribe({deviceId, interfaceId, streamId}, handler);
         }
     }
     functionBlocks.removeItem(captureFb);

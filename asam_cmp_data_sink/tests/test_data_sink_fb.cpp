@@ -27,7 +27,7 @@ protected:
         statusHandler = statusFb.asPtrOrNull<IStatusHandler>();
 
         funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::DataSinkFb>(
-            context, nullptr, "asam_cmp_data_sink", statusHandler->getStatusMt(), publisher);
+            context, nullptr, "asam_cmp_data_sink", statusHandler->getStatusMt(), publisher, capturePacketPublisher);
 
         CaptureModulePayload cmPayload;
         std::vector<uint8_t> vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
@@ -57,6 +57,7 @@ protected:
 
 protected:
     modules::asam_cmp_data_sink_module::DataPacketsPublisher publisher;
+    modules::asam_cmp_data_sink_module::CapturePacketsPublisher capturePacketPublisher;
     ContextPtr context;
     FunctionBlockPtr funcBlock;
     FunctionBlockPtr statusFb;
@@ -166,6 +167,24 @@ TEST_F(DataSinkFbTest, AddCaptureModuleEmpty)
     func();
     func();
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
+}
+
+TEST_F(DataSinkFbTest, UpdateDeviceInfo)
+{
+    funcBlock.getPropertyValue("AddCaptureModuleEmpty").execute();
+    auto captureModule = funcBlock.getFunctionBlocks()[0];
+    capturePacketPublisher.publish(cmPacket->getDeviceId(), cmPacket);
+
+    StringPtr propVal = captureModule.getPropertyValue("DeviceDescription");
+    ASSERT_EQ(propVal.toStdString(), deviceDescr);
+    propVal = captureModule.getPropertyValue("SerialNumber");
+    ASSERT_EQ(propVal.toStdString(), serialNumber);
+    propVal = captureModule.getPropertyValue("HardwareVersion");
+    ASSERT_EQ(propVal.toStdString(), hardwareVersion);
+    propVal = captureModule.getPropertyValue("SoftwareVersion");
+    ASSERT_EQ(propVal.toStdString(), softwareVersion);
+    propVal = captureModule.getPropertyValue("VendorData");
+    ASSERT_EQ(propVal.toStdString(), vendorDataAsString);
 }
 
 TEST_F(DataSinkFbTest, RemoveCaptureModule)

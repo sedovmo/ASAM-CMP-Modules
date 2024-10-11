@@ -17,11 +17,12 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0", publisher);
+            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0", publisher, capturePacketsPublisher);
     }
 
 protected:
     modules::asam_cmp_data_sink_module::DataPacketsPublisher publisher;
+    modules::asam_cmp_data_sink_module::CapturePacketsPublisher capturePacketsPublisher;
     FunctionBlockPtr captureFb;
 };
 
