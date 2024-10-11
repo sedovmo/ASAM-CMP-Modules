@@ -10,10 +10,10 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
                          const uint16_t& deviceId,
-                         CallsMultiMap& callsMap)
+                         DataPacketsPublisher& publisher)
     : InterfaceCommonFb(ctx, parent, localId, init)
     , deviceId(deviceId)
-    , callsMap(callsMap)
+    , publisher(publisher)
 {
 }
 
@@ -22,12 +22,12 @@ InterfaceFb::InterfaceFb(const ContextPtr& ctx,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
                          const uint16_t& deviceId,
-                         CallsMultiMap& callsMap,
+                         DataPacketsPublisher& publisher,
                          ASAM::CMP::InterfaceStatus&& ifStatus)
     : InterfaceCommonFb(ctx, parent, localId, init)
     , interfaceStatus(std::move(ifStatus))
     , deviceId(deviceId)
-    , callsMap(callsMap)
+    , publisher(publisher)
 {
     createFbs();
 }
@@ -41,26 +41,26 @@ void InterfaceFb::updateInterfaceIdInternal()
 
     for (const auto& fb : functionBlocks.getItems())
     {
-        Int streamId = fb.getPropertyValue("StreamId");
-        auto handler = fb.as<IDataHandler>(true);
-        callsMap.erase(deviceId, oldInterfaceId, streamId, handler);
-        callsMap.insert(deviceId, interfaceId, streamId, handler);
+        uint8_t streamId = static_cast<Int>(fb.getPropertyValue("StreamId"));
+        auto handler = fb.as<IAsamCmpPacketsSubscriber>(true);
+        publisher.unsubscribe({deviceId, oldInterfaceId, streamId}, handler);
+        publisher.subscribe({deviceId, interfaceId, streamId}, handler);
     }
 }
 
 void InterfaceFb::addStreamInternal()
 {
     auto streamId = streamIdManager->getFirstUnusedId();
-    auto newFb = addStreamWithParams<StreamFb>(streamId, callsMap, deviceId, interfaceId);
-    callsMap.insert(deviceId, interfaceId, streamId, newFb.as<IDataHandler>(true));
+    auto newFb = addStreamWithParams<StreamFb>(streamId, publisher, deviceId, interfaceId);
+    publisher.subscribe({deviceId, interfaceId, streamId}, newFb.as<IAsamCmpPacketsSubscriber>(true));
 }
 
 void InterfaceFb::removeStreamInternal(size_t nInd)
 {
     auto fb = functionBlocks.getItems().getItemAt(nInd);
-    Int streamId = fb.getPropertyValue("StreamId");
+    uint8_t streamId = static_cast<Int>(fb.getPropertyValue("StreamId"));
     InterfaceCommonFb::removeStreamInternal(nInd);
-    callsMap.erase(deviceId, interfaceId, streamId, fb.asPtr<IDataHandler>(true));
+    publisher.unsubscribe({deviceId, interfaceId, streamId}, fb.asPtr<IAsamCmpPacketsSubscriber>(true));
 }
 
 void InterfaceFb::createFbs()
@@ -74,8 +74,8 @@ void InterfaceFb::createFbs()
     for (uint16_t i = 0; i < ifPayload.getStreamIdsCount(); ++i)
     {
         auto newId = streamIds[i];
-        auto newFb = addStreamWithParams<StreamFb>(newId, callsMap, deviceId, interfaceId);
-        callsMap.insert(deviceId, interfaceId, newId, newFb.as<IDataHandler>(true));
+        auto newFb = addStreamWithParams<StreamFb>(newId, publisher, deviceId, interfaceId);
+        publisher.subscribe({deviceId, interfaceId, newId}, newFb.as<IAsamCmpPacketsSubscriber>(true));
     }
 }
 

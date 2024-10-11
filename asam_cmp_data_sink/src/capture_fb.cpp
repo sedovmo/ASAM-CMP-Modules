@@ -5,9 +5,9 @@
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
-CaptureFb::CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, CallsMultiMap& callsMap)
+CaptureFb::CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, DataPacketsPublisher& publisher)
     : CaptureCommonFb(ctx, parent, localId)
-    , callsMap(callsMap)
+    , publisher(publisher)
 {
     initDeviceInfoProperties(true);
 }
@@ -15,11 +15,11 @@ CaptureFb::CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const St
 CaptureFb::CaptureFb(const ContextPtr& ctx,
                      const ComponentPtr& parent,
                      const StringPtr& localId,
-                     CallsMultiMap& callsMap,
+                     DataPacketsPublisher& publisher,
                      ASAM::CMP::DeviceStatus&& deviceStatus)
     : CaptureCommonFb(ctx, parent, localId)
     , deviceStatus(std::move(deviceStatus))
-    , callsMap(callsMap)
+    , publisher(publisher)
 {
     initDeviceInfoProperties(true);
     setProperties();
@@ -38,10 +38,10 @@ void CaptureFb::updateDeviceIdInternal()
         uint32_t interfaceId = interfaceFb.getPropertyValue("InterfaceId");
         for (const auto& streamFb : interfaceFb.getFunctionBlocks())
         {
-            Int streamId = streamFb.getPropertyValue("StreamId");
-            auto handler = streamFb.as<IDataHandler>(true);
-            callsMap.erase(oldDeviceId, interfaceId, streamId, handler);
-            callsMap.insert(deviceId, interfaceId, streamId, handler);
+            uint8_t streamId = static_cast<Int>(streamFb.getPropertyValue("StreamId"));
+            auto handler = streamFb.as<IAsamCmpPacketsSubscriber>(true);
+            publisher.unsubscribe({oldDeviceId, interfaceId, streamId}, handler);
+            publisher.subscribe({deviceId, interfaceId, streamId}, handler);
         }
     }
 }
@@ -49,7 +49,7 @@ void CaptureFb::updateDeviceIdInternal()
 void CaptureFb::addInterfaceInternal()
 {
     auto interfaceId = interfaceIdManager.getFirstUnusedId();
-    addInterfaceWithParams<InterfaceFb>(interfaceId, deviceId, callsMap);
+    addInterfaceWithParams<InterfaceFb>(interfaceId, deviceId, publisher);
 }
 
 void CaptureFb::removeInterfaceInternal(size_t nInd)
@@ -58,9 +58,9 @@ void CaptureFb::removeInterfaceInternal(size_t nInd)
     uint32_t interfaceId = interfaceFb.getPropertyValue("InterfaceId");
     for (const auto& streamFb : interfaceFb.getFunctionBlocks())
     {
-        Int streamId = streamFb.getPropertyValue("StreamId");
-        auto handler = streamFb.as<IDataHandler>(true);
-        callsMap.erase(deviceId, interfaceId, streamId, handler);
+        uint8_t streamId = static_cast<Int>(streamFb.getPropertyValue("StreamId"));
+        auto handler = streamFb.as<IAsamCmpPacketsSubscriber>(true);
+        publisher.unsubscribe({deviceId, interfaceId, streamId}, handler);
     }
 
     CaptureCommonFb::removeInterfaceInternal(nInd);
@@ -101,7 +101,7 @@ void CaptureFb::createFbs()
     {
         auto ifStatus = deviceStatus.getInterfaceStatus(i);
         auto interfaceId = ifStatus.getInterfaceId();
-        addInterfaceWithParams<InterfaceFb>(interfaceId, deviceId, callsMap, std::move(ifStatus));
+        addInterfaceWithParams<InterfaceFb>(interfaceId, deviceId, publisher, std::move(ifStatus));
     }
 }
 

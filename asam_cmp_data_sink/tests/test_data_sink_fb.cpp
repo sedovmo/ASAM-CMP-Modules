@@ -27,7 +27,7 @@ protected:
         statusHandler = statusFb.asPtrOrNull<IStatusHandler>();
 
         funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::DataSinkFb>(
-            context, nullptr, "asam_cmp_data_sink", statusHandler->getStatusMt(), callsMultiMap);
+            context, nullptr, "asam_cmp_data_sink", statusHandler->getStatusMt(), publisher);
 
         CaptureModulePayload cmPayload;
         std::vector<uint8_t> vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
@@ -56,7 +56,7 @@ protected:
     static constexpr std::string_view vendorDataAsString = "Vendor Data";
 
 protected:
-    modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
+    modules::asam_cmp_data_sink_module::DataPacketsPublisher publisher;
     ContextPtr context;
     FunctionBlockPtr funcBlock;
     FunctionBlockPtr statusFb;
@@ -107,19 +107,16 @@ TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
 
     int targetInterfaceId = 0;
     FunctionPtr isCorrectInterface =
-        Function([&targetInterfaceId](FunctionBlockPtr arg){
-            return arg.hasProperty("InterfaceId") && (arg.getPropertyValue("InterfaceId") == targetInterfaceId);
-        });
+        Function([&targetInterfaceId](FunctionBlockPtr arg)
+                 { return arg.hasProperty("InterfaceId") && (arg.getPropertyValue("InterfaceId") == targetInterfaceId); });
     SearchFilterPtr interfaceFilter = search::Custom(isCorrectInterface);
 
     ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1);
     auto interfaceFb = captureModule.getFunctionBlocks(interfaceFilter)[0];
 
     int targetStreamId = 1;
-    FunctionPtr isCorrectStream =
-        Function([&targetStreamId](FunctionBlockPtr arg) {
-            return arg.hasProperty("StreamId") && (arg.getPropertyValue("StreamId") == targetStreamId);
-        });
+    FunctionPtr isCorrectStream = Function([&targetStreamId](FunctionBlockPtr arg)
+                                           { return arg.hasProperty("StreamId") && (arg.getPropertyValue("StreamId") == targetStreamId); });
     SearchFilterPtr streamFilter = search::Custom(isCorrectStream);
 
     ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
@@ -187,7 +184,7 @@ TEST_F(DataSinkFbTest, RemoveCaptureModule)
     ProcedurePtr removeFunc = funcBlock.getPropertyValue("RemoveCaptureModule");
     removeFunc(0);
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0);
-    ASSERT_EQ(callsMultiMap.size(), 0);
+    ASSERT_EQ(publisher.size(), 0);
 }
 
 TEST_F(DataSinkFbTest, DefaultDevicesIds)

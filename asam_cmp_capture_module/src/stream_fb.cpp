@@ -81,7 +81,7 @@ void StreamFb::updateStreamIdInternal()
     streamIdsList.erase(streamId);
     auto oldId = streamId;
 
-    Int newId = objPtr.getPropertyValue("StreamId");
+    uint8_t newId = static_cast<Int>(objPtr.getPropertyValue("StreamId"));
 
     if (streamIdManager->isValidId(newId))
     {

@@ -18,7 +18,7 @@
 #include <asam_cmp/interface_status.h>
 
 #include <asam_cmp_common_lib/interface_common_fb.h>
-#include <asam_cmp_data_sink/calls_multi_map.h>
+#include <asam_cmp_data_sink/data_packets_publisher.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
@@ -30,13 +30,13 @@ public:
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
                          const uint16_t& deviceId,
-                         CallsMultiMap& callsMap);
+                         DataPacketsPublisher& publisher);
     explicit InterfaceFb(const ContextPtr& ctx,
                          const ComponentPtr& parent,
                          const StringPtr& localId,
                          const asam_cmp_common_lib::InterfaceCommonInit& init,
                          const uint16_t& deviceId,
-                         CallsMultiMap& callsMap,
+                         DataPacketsPublisher& publisher,
                          ASAM::CMP::InterfaceStatus&& ifStatus);
 
     ~InterfaceFb() override = default;
@@ -51,7 +51,7 @@ private:
 
 private:
     ASAM::CMP::InterfaceStatus interfaceStatus;
-    CallsMultiMap& callsMap;
+    DataPacketsPublisher& publisher;
     const uint16_t& deviceId;
 };
 

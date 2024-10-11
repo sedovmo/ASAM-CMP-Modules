@@ -56,7 +56,7 @@ private:
     void initProperties();
 
 protected:
-    uint32_t streamId;
+    uint8_t streamId;
     PayloadType payloadType{0};
 
     StreamIdManagerPtr streamIdManager;
@@ -105,7 +105,7 @@ void StreamCommonFbImpl<Interfaces...>::initProperties()
 template <typename... Interfaces>
 void StreamCommonFbImpl<Interfaces...>::updateStreamIdInternal()
 {
-    Int newId = this->objPtr.getPropertyValue("StreamId");
+    uint8_t newId = static_cast<Int>(this->objPtr.getPropertyValue("StreamId"));
 
     if (newId == streamId)
         return;

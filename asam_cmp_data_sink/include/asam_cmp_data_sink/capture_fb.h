@@ -20,19 +20,19 @@
 
 #include <asam_cmp_common_lib/capture_common_fb.h>
 #include <asam_cmp_common_lib/id_manager.h>
-#include <asam_cmp_data_sink/calls_multi_map.h>
 #include <asam_cmp_data_sink/common.h>
+#include <asam_cmp_data_sink/data_packets_publisher.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
 class CaptureFb final : public asam_cmp_common_lib::CaptureCommonFb
 {
 public:
-    explicit CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, CallsMultiMap& callsMap);
+    explicit CaptureFb(const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, DataPacketsPublisher& publisher);
     explicit CaptureFb(const ContextPtr& ctx,
                        const ComponentPtr& parent,
                        const StringPtr& localId,
-                       CallsMultiMap& callsMap,
+                       DataPacketsPublisher& publisher,
                        ASAM::CMP::DeviceStatus&& deviceStatus);
     ~CaptureFb() override = default;
 
@@ -47,7 +47,7 @@ private:
 
 private:
     ASAM::CMP::DeviceStatus deviceStatus;
-    CallsMultiMap& callsMap;
+    DataPacketsPublisher& publisher;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

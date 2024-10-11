@@ -7,10 +7,10 @@
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
 DataSinkFb::DataSinkFb(
-    const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt, CallsMultiMap& callsMap)
+    const ContextPtr& ctx, const ComponentPtr& parent, const StringPtr& localId, StatusMt statusMt, DataPacketsPublisher& publisher)
     : FunctionBlock(CreateType(), ctx, parent, localId)
     , status(statusMt)
-    , callsMap(callsMap)
+    , publisher(publisher)
 {
     initProperties();
 }
@@ -27,7 +27,7 @@ void DataSinkFb::addCaptureModuleFromStatus(int index)
     auto deviceStatus = status.getDeviceStatus(index);
     const StringPtr fbId = getFbId(captureModuleId);
     const auto newFb =
-        createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, callsMap, std::move(deviceStatus));
+        createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, publisher, std::move(deviceStatus));
     functionBlocks.addItem(newFb);
     ++captureModuleId;
 }
@@ -37,7 +37,7 @@ void DataSinkFb::addCaptureModuleEmpty()
     std::scoped_lock lock{sync};
 
     const StringPtr fbId = getFbId(captureModuleId);
-    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, callsMap);
+    const auto newFb = createWithImplementation<IFunctionBlock, CaptureFb>(context, functionBlocks, fbId, publisher);
     functionBlocks.addItem(newFb);
     ++captureModuleId;
 }
@@ -54,9 +54,9 @@ void DataSinkFb::removeCaptureModule(int fbIndex)
         uint32_t interfaceId = interfaceFb.getPropertyValue("InterfaceId");
         for (const auto& streamFb : interfaceFb.getFunctionBlocks())
         {
-            Int streamId = streamFb.getPropertyValue("StreamId");
-            auto handler = streamFb.as<IDataHandler>(true);
-            callsMap.erase(deviceId, interfaceId, streamId, handler);
+            uint8_t streamId = static_cast<Int>(streamFb.getPropertyValue("StreamId"));
+            auto handler = streamFb.as<IAsamCmpPacketsSubscriber>(true);
+            publisher.unsubscribe({deviceId, interfaceId, streamId}, handler);
         }
     }
     functionBlocks.removeItem(captureFb);

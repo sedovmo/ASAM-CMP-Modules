@@ -124,7 +124,7 @@ void AnalogMessagesTest::testAnalogPackets(bool setScale)
     createProc();
     auto streamFb = interfaceFb.getFunctionBlocks().getItemAt(0);
 
-    uint8_t streamId = streamFb.getPropertyValue("StreamId");
+    uint8_t streamId = static_cast<Int>(streamFb.getPropertyValue("StreamId"));
     uint32_t interfaceId = interfaceFb.getPropertyValue("InterfaceId");
     uint16_t deviceId = captureFb.getPropertyValue("DeviceId");
 

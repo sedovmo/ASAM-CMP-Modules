@@ -1,7 +1,7 @@
-#include <asam_cmp_data_sink/calls_multi_map.h>
+#include <asam_cmp_data_sink/asam_cmp_packets_subscriber.h>
 #include <asam_cmp_data_sink/capture_fb.h>
 #include <asam_cmp_data_sink/common.h>
-#include <asam_cmp_data_sink/data_handler.h>
+#include <asam_cmp_data_sink/data_packets_publisher.h>
 
 #include <asam_cmp/analog_payload.h>
 #include <asam_cmp/can_payload.h>
@@ -21,8 +21,8 @@ using namespace daq;
 using ASAM::CMP::AnalogPayload;
 using ASAM::CMP::CanPayload;
 using ASAM::CMP::Packet;
-using daq::modules::asam_cmp_data_sink_module::CallsMultiMap;
-using daq::modules::asam_cmp_data_sink_module::IDataHandler;
+using daq::modules::asam_cmp_data_sink_module::DataPacketsPublisher;
+using daq::modules::asam_cmp_data_sink_module::IAsamCmpPacketsSubscriber;
 
 size_t waitForSamples(const GenericReaderPtr<IReader>& reader, std::chrono::milliseconds timeout = 100ms)
 {
@@ -51,7 +51,7 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", callsMultiMap);
+            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher);
 
         captureFb.getPropertyValue("AddInterface").execute();
         interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
@@ -73,7 +73,7 @@ protected:
     static constexpr int analogPayloadType = 3;
 
 protected:
-    CallsMultiMap callsMultiMap;
+    DataPacketsPublisher publisher;
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interfaceFb;
     FunctionBlockPtr funcBlock;
@@ -168,7 +168,7 @@ TEST_F(StreamFbTest, RemoveStream)
     interfaceFb.getPropertyValue("RemoveStream").execute(0);
     ASSERT_EQ(interfaceFb.getFunctionBlocks().getCount(), 0);
 
-    ASSERT_EQ(callsMultiMap.size(), 0);
+    ASSERT_EQ(publisher.size(), 0);
 }
 
 TEST_F(StreamFbTest, RemoveAddStream)
@@ -187,7 +187,7 @@ TEST_F(StreamFbTest, RemoveInterface)
     captureFb.getPropertyValue("RemoveInterface").execute(0);
     ASSERT_EQ(captureFb.getFunctionBlocks().getCount(), 0);
 
-    ASSERT_EQ(callsMultiMap.size(), 0);
+    ASSERT_EQ(publisher.size(), 0);
 }
 
 class StreamFbCanPayloadTest : public StreamFbTest
@@ -244,12 +244,12 @@ TEST_F(StreamFbCanPayloadTest, ChangeStreamId)
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
-    callsMultiMap.processPacket(canPacket);
+    publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     auto samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, 0);
 
     canPacket->setStreamId(newStreamId);
-    callsMultiMap.processPacket(canPacket);
+    publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, 1);
 }
@@ -263,12 +263,12 @@ TEST_F(StreamFbCanPayloadTest, ChangeInterfaceId)
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
-    callsMultiMap.processPacket(canPacket);
+    publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     auto samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, 0);
 
     canPacket->setInterfaceId(newInterfaceId);
-    callsMultiMap.processPacket(canPacket);
+    publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, 1);
 }
@@ -282,12 +282,12 @@ TEST_F(StreamFbCanPayloadTest, ChangeDeviceId)
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::Int64);
 
-    callsMultiMap.processPacket(canPacket);
+    publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     auto samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, 0);
 
     canPacket->setDeviceId(newDeviceId);
-    callsMultiMap.processPacket(canPacket);
+    publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, 1);
 }
@@ -317,12 +317,12 @@ TEST_F(StreamFbCanPayloadTest, CanSignalDescriptors)
 TEST_F(StreamFbCanPayloadTest, ReceivePacketWithWrongPayloadType)
 {
     interfaceFb.setPropertyValue("PayloadType", analogPayloadType);
-    const auto dataHandler = funcBlock.as<IDataHandler>(true);
+    const auto dataHandler = funcBlock.as<IAsamCmpPacketsSubscriber>(true);
 
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal);
 
-    dataHandler->processData(canPacket);
+    dataHandler->receive(canPacket);
     const bool haveSamples = waitForSamples(reader);
     ASSERT_FALSE(haveSamples);
 }
@@ -333,7 +333,7 @@ TEST_F(StreamFbCanPayloadTest, ReadOutputCanSignal)
     const auto outputSignal = funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Struct, SampleType::UInt64);
 
-    callsMultiMap.processPacket(canPacket);
+    publisher.publish({canPacket->getDeviceId(), canPacket->getInterfaceId(), canPacket->getStreamId()}, canPacket);
     const auto samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, 1);
 
@@ -426,7 +426,7 @@ TYPED_TEST(StreamFbAnalogPayloadTest, AnalogSignalDescriptor)
     const auto maxValue = this->sampleScalar * pow(2, intSize) + this->sampleOffset;
 
     this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
-    this->funcBlock.template as<IDataHandler>(true)->processData(this->analogPacket);
+    this->funcBlock.template as<IAsamCmpPacketsSubscriber>(true)->receive(this->analogPacket);
 
     const auto descriptor = this->funcBlock.getSignalsRecursive()[0].getDescriptor();
     ASSERT_EQ(descriptor.getName(), name);
@@ -450,7 +450,8 @@ TYPED_TEST(StreamFbAnalogPayloadTest, ReadOutputAnalogSignal)
 
     const auto& analogPayload = static_cast<const AnalogPayload&>(this->analogPacket->getPayload());
 
-    this->callsMultiMap.processPacket(this->analogPacket);
+    this->publisher.publish({this->analogPacket->getDeviceId(), this->analogPacket->getInterfaceId(), this->analogPacket->getStreamId()},
+                            this->analogPacket);
     auto samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, analogPayload.getSamplesCount());
 
@@ -461,15 +462,19 @@ TYPED_TEST(StreamFbAnalogPayloadTest, ReadOutputAnalogSignal)
     ASSERT_EQ(count, samplesCount);
 
     std::vector<uint64_t> checkDomain(samplesCount);
-    std::generate(checkDomain.begin(), checkDomain.end(), [t = this->analogPacket->getTimestamp() - this->deltaT, this]() mutable { return t += this->deltaT; });
+    std::generate(checkDomain.begin(),
+                  checkDomain.end(),
+                  [t = this->analogPacket->getTimestamp() - this->deltaT, this]() mutable { return t += this->deltaT; });
     ASSERT_TRUE(std::equal(domainSample.begin(), domainSample.end(), checkDomain.begin()));
 
     auto analogData = reinterpret_cast<const TypeParam*>(analogPayload.getData());
     auto analogDataSize = analogPayload.getSamplesCount();
 
     std::vector<double> checkSamples(samplesCount);
-    std::transform(
-        analogData, analogData + analogDataSize, checkSamples.begin(), [this](const double val) { return val * this->sampleScalar + this->sampleOffset; });
+    std::transform(analogData,
+                   analogData + analogDataSize,
+                   checkSamples.begin(),
+                   [this](const double val) { return val * this->sampleScalar + this->sampleOffset; });
     ASSERT_TRUE(std::equal(samples.begin(), samples.end(), checkSamples.begin()));
 }
 
@@ -496,13 +501,15 @@ TYPED_TEST(StreamFbAnalogPayloadTest, DataTypeChanged)
     const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReaderSkipEvents(outputSignal, SampleType::Float64, SampleType::UInt64);
 
-    this->callsMultiMap.processPacket(this->analogPacket);
+    this->publisher.publish({this->analogPacket->getDeviceId(), this->analogPacket->getInterfaceId(), this->analogPacket->getStreamId()},
+                            this->analogPacket);
     auto samplesCount = waitForSamples(reader);
     reader.skipSamples(&samplesCount);
     auto newPacket = this->template createAnalogPacket<AnotherType>();
     newPacket->setTimestamp(this->analogPacket->getTimestamp() + samplesCount * this->deltaT);
     const auto& newPayload = static_cast<const AnalogPayload&>(newPacket->getPayload());
-    this->callsMultiMap.processPacket(newPacket);
+    this->publisher.publish({this->analogPacket->getDeviceId(), this->analogPacket->getInterfaceId(), this->analogPacket->getStreamId()},
+                            newPacket);
     samplesCount = waitForSamples(reader);
     ASSERT_EQ(samplesCount, newPayload.getSamplesCount());
 
@@ -513,15 +520,19 @@ TYPED_TEST(StreamFbAnalogPayloadTest, DataTypeChanged)
     ASSERT_EQ(count, samplesCount);
 
     std::vector<uint64_t> checkDomain(samplesCount);
-    std::generate(checkDomain.begin(), checkDomain.end(), [t = newPacket->getTimestamp() - this->deltaT, this]() mutable { return t += this->deltaT; });
+    std::generate(checkDomain.begin(),
+                  checkDomain.end(),
+                  [t = newPacket->getTimestamp() - this->deltaT, this]() mutable { return t += this->deltaT; });
     ASSERT_TRUE(std::equal(domainSample.begin(), domainSample.end(), checkDomain.begin()));
 
     auto analogData = reinterpret_cast<const AnotherType*>(newPayload.getData());
     auto analogDataSize = newPayload.getSamplesCount();
 
     std::vector<double> checkSamples(samplesCount);
-    std::transform(
-        analogData, analogData + analogDataSize, checkSamples.begin(), [this](const double val) { return val * this->sampleScalar + this->sampleOffset; });
+    std::transform(analogData,
+                   analogData + analogDataSize,
+                   checkSamples.begin(),
+                   [this](const double val) { return val * this->sampleScalar + this->sampleOffset; });
     ASSERT_TRUE(std::equal(samples.begin(), samples.end(), checkSamples.begin()));
 }
 
@@ -534,7 +545,8 @@ TYPED_TEST(StreamFbAnalogPayloadTest, UnitChanged)
     const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Float64, SampleType::UInt64);
 
-    this->callsMultiMap.processPacket(this->analogPacket);
+    this->publisher.publish({this->analogPacket->getDeviceId(), this->analogPacket->getInterfaceId(), this->analogPacket->getStreamId()},
+                            this->analogPacket);
     size_t count = 0;
     while (reader.read(nullptr, &count).getReadStatus() == ReadStatus::Event)
         ;
@@ -545,7 +557,8 @@ TYPED_TEST(StreamFbAnalogPayloadTest, UnitChanged)
     this->analogPacket->setTimestamp(this->analogPacket->getTimestamp() + samplesCount * this->deltaT);
     auto& payload = static_cast<AnalogPayload&>(this->analogPacket->getPayload());
     payload.setUnit(asamCmpUnit);
-    this->callsMultiMap.processPacket(this->analogPacket);
+    this->publisher.publish({this->analogPacket->getDeviceId(), this->analogPacket->getInterfaceId(), this->analogPacket->getStreamId()},
+                            this->analogPacket);
 
     auto descriptor = this->readDataDescriptor(reader, "DataDescriptor");
     ASSERT_EQ(descriptor.getUnit().getSymbol(), openDaqUnit);
@@ -560,7 +573,8 @@ TYPED_TEST(StreamFbAnalogPayloadTest, SampleIntervalChanged)
     const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Float64, SampleType::UInt64);
 
-    this->callsMultiMap.processPacket(this->analogPacket);
+    this->publisher.publish({this->analogPacket->getDeviceId(), this->analogPacket->getInterfaceId(), this->analogPacket->getStreamId()},
+                            this->analogPacket);
     size_t count = 0;
     while (reader.read(nullptr, &count).getReadStatus() == ReadStatus::Event)
         ;
@@ -571,7 +585,8 @@ TYPED_TEST(StreamFbAnalogPayloadTest, SampleIntervalChanged)
     this->analogPacket->setTimestamp(this->analogPacket->getTimestamp() + samplesCount * this->deltaT);
     auto& payload = static_cast<AnalogPayload&>(this->analogPacket->getPayload());
     payload.setSampleInterval(newSampleInterval);
-    this->callsMultiMap.processPacket(this->analogPacket);
+    this->publisher.publish({this->analogPacket->getDeviceId(), this->analogPacket->getInterfaceId(), this->analogPacket->getStreamId()},
+                            this->analogPacket);
 
     auto descriptor = this->readDataDescriptor(reader, "DomainDataDescriptor");
     ASSERT_EQ(descriptor.getRule().getParameters().get("delta"), newDeltaT);
@@ -591,7 +606,8 @@ TYPED_TEST(StreamFbAnalogPayloadTest, PostScalingChanged)
     const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
     const StreamReaderPtr reader = StreamReader(outputSignal, SampleType::Float64, SampleType::UInt64);
 
-    this->callsMultiMap.processPacket(this->analogPacket);
+    this->publisher.publish({this->analogPacket->getDeviceId(), this->analogPacket->getInterfaceId(), this->analogPacket->getStreamId()},
+                            this->analogPacket);
     size_t count = 0;
     while (reader.read(nullptr, &count).getReadStatus() == ReadStatus::Event)
         ;
@@ -603,11 +619,11 @@ TYPED_TEST(StreamFbAnalogPayloadTest, PostScalingChanged)
     auto& payload = static_cast<AnalogPayload&>(this->analogPacket->getPayload());
     payload.setSampleOffset(newSampleOffset);
     payload.setSampleScalar(newSampleScalar);
-    this->callsMultiMap.processPacket(this->analogPacket);
+    this->publisher.publish({this->analogPacket->getDeviceId(), this->analogPacket->getInterfaceId(), this->analogPacket->getStreamId()},
+                            this->analogPacket);
 
     auto descriptor = this->readDataDescriptor(reader, "DataDescriptor");
 
     ASSERT_EQ(descriptor.getPostScaling(), LinearScaling(newSampleScalar, newSampleOffset, rawSampleType));
     ASSERT_EQ(descriptor.getValueRange(), Range(minValue, maxValue));
 }
-
