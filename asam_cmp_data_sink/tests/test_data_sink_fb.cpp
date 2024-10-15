@@ -1,6 +1,6 @@
-#include <asam_cmp_data_sink/status_handler.h>
 #include <asam_cmp_data_sink/data_sink_fb.h>
 #include <asam_cmp_data_sink/status_fb_impl.h>
+#include <asam_cmp_data_sink/status_handler.h>
 
 #include <asam_cmp/capture_module_payload.h>
 #include <asam_cmp/interface_payload.h>
@@ -22,19 +22,16 @@ protected:
     {
         auto logger = Logger();
         context = Context(Scheduler(logger), logger, TypeManager(), nullptr);
-        statusFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::StatusFbImpl>(
-            context, nullptr, "asam_cmp_status");
+        statusFb =
+            createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::StatusFbImpl>(context, nullptr, "asam_cmp_status");
         statusHandler = statusFb.asPtrOrNull<IStatusHandler>();
 
         funcBlock = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::DataSinkFb>(
-            context,
-            nullptr,
-            "asam_cmp_data_sink",
-            statusHandler->getStatusMt(),
-            callsMultiMap);
+            context, nullptr, "asam_cmp_data_sink", statusHandler->getStatusMt(), publisher, capturePacketPublisher);
 
         CaptureModulePayload cmPayload;
-        cmPayload.setData(deviceDescr, "", "", "", {});
+        std::vector<uint8_t> vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
+        cmPayload.setData(deviceDescr, serialNumber, hardwareVersion, softwareVersion, vendorData);
         cmPacket = std::make_shared<Packet>();
         cmPacket->setVersion(1);
         cmPacket->setPayload(cmPayload);
@@ -53,9 +50,14 @@ protected:
 
 protected:
     static constexpr std::string_view deviceDescr = "Device Description";
+    static constexpr std::string_view serialNumber = "Serial Number";
+    static constexpr std::string_view hardwareVersion = "Hardware Version";
+    static constexpr std::string_view softwareVersion = "Software Version";
+    static constexpr std::string_view vendorDataAsString = "Vendor Data";
 
 protected:
-    modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
+    modules::asam_cmp_data_sink_module::DataPacketsPublisher publisher;
+    modules::asam_cmp_data_sink_module::CapturePacketsPublisher capturePacketPublisher;
     ContextPtr context;
     FunctionBlockPtr funcBlock;
     FunctionBlockPtr statusFb;
@@ -93,21 +95,29 @@ TEST_F(DataSinkFbTest, AddCaptureModuleFromStatus)
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
     auto captureModule = funcBlock.getFunctionBlocks()[0];
 
+    StringPtr propVal = captureModule.getPropertyValue("DeviceDescription");
+    ASSERT_EQ(propVal.toStdString(), deviceDescr);
+    propVal = captureModule.getPropertyValue("SerialNumber");
+    ASSERT_EQ(propVal.toStdString(), serialNumber);
+    propVal = captureModule.getPropertyValue("HardwareVersion");
+    ASSERT_EQ(propVal.toStdString(), hardwareVersion);
+    propVal = captureModule.getPropertyValue("SoftwareVersion");
+    ASSERT_EQ(propVal.toStdString(), softwareVersion);
+    propVal = captureModule.getPropertyValue("VendorData");
+    ASSERT_EQ(propVal.toStdString(), vendorDataAsString);
+
     int targetInterfaceId = 0;
     FunctionPtr isCorrectInterface =
-        Function([&targetInterfaceId](FunctionBlockPtr arg){
-            return arg.hasProperty("InterfaceId") && (arg.getPropertyValue("InterfaceId") == targetInterfaceId);
-        });
+        Function([&targetInterfaceId](FunctionBlockPtr arg)
+                 { return arg.hasProperty("InterfaceId") && (arg.getPropertyValue("InterfaceId") == targetInterfaceId); });
     SearchFilterPtr interfaceFilter = search::Custom(isCorrectInterface);
 
     ASSERT_EQ(captureModule.getFunctionBlocks(interfaceFilter).getCount(), 1);
     auto interfaceFb = captureModule.getFunctionBlocks(interfaceFilter)[0];
 
     int targetStreamId = 1;
-    FunctionPtr isCorrectStream =
-        Function([&targetStreamId](FunctionBlockPtr arg) {
-            return arg.hasProperty("StreamId") && (arg.getPropertyValue("StreamId") == targetStreamId);
-        });
+    FunctionPtr isCorrectStream = Function([&targetStreamId](FunctionBlockPtr arg)
+                                           { return arg.hasProperty("StreamId") && (arg.getPropertyValue("StreamId") == targetStreamId); });
     SearchFilterPtr streamFilter = search::Custom(isCorrectStream);
 
     ASSERT_EQ(interfaceFb.getFunctionBlocks(streamFilter).getCount(), 1);
@@ -159,6 +169,24 @@ TEST_F(DataSinkFbTest, AddCaptureModuleEmpty)
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 2);
 }
 
+TEST_F(DataSinkFbTest, UpdateDeviceInfo)
+{
+    funcBlock.getPropertyValue("AddCaptureModuleEmpty").execute();
+    auto captureModule = funcBlock.getFunctionBlocks()[0];
+    capturePacketPublisher.publish(cmPacket->getDeviceId(), cmPacket);
+
+    StringPtr propVal = captureModule.getPropertyValue("DeviceDescription");
+    ASSERT_EQ(propVal.toStdString(), deviceDescr);
+    propVal = captureModule.getPropertyValue("SerialNumber");
+    ASSERT_EQ(propVal.toStdString(), serialNumber);
+    propVal = captureModule.getPropertyValue("HardwareVersion");
+    ASSERT_EQ(propVal.toStdString(), hardwareVersion);
+    propVal = captureModule.getPropertyValue("SoftwareVersion");
+    ASSERT_EQ(propVal.toStdString(), softwareVersion);
+    propVal = captureModule.getPropertyValue("VendorData");
+    ASSERT_EQ(propVal.toStdString(), vendorDataAsString);
+}
+
 TEST_F(DataSinkFbTest, RemoveCaptureModule)
 {
     auto proc = daq::Procedure([]() {});
@@ -175,7 +203,7 @@ TEST_F(DataSinkFbTest, RemoveCaptureModule)
     ProcedurePtr removeFunc = funcBlock.getPropertyValue("RemoveCaptureModule");
     removeFunc(0);
     ASSERT_EQ(funcBlock.getFunctionBlocks().getCount(), 0);
-    ASSERT_EQ(callsMultiMap.size(), 0);
+    ASSERT_EQ(publisher.size(), 0);
 }
 
 TEST_F(DataSinkFbTest, DefaultDevicesIds)

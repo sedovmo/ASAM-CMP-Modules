@@ -19,8 +19,9 @@
 #include <asam_cmp/decoder.h>
 #include <asam_cmp_common_lib/network_manager_fb.h>
 
-#include <asam_cmp_data_sink/calls_multi_map.h>
+#include <asam_cmp_data_sink/capture_packets_publisher.h>
 #include <asam_cmp_data_sink/common.h>
+#include <asam_cmp_data_sink/data_packets_publisher.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
@@ -28,9 +29,9 @@ class DataSinkModuleFb final : public asam_cmp_common_lib::NetworkManagerFb
 {
 public:
     explicit DataSinkModuleFb(const ContextPtr& ctx,
-                                  const ComponentPtr& parent,
-                                  const StringPtr& localId,
-                                  const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper);
+                              const ComponentPtr& parent,
+                              const StringPtr& localId,
+                              const std::shared_ptr<asam_cmp_common_lib::EthernetPcppItf>& ethernetWrapper);
     ~DataSinkModuleFb() override;
 
     static FunctionBlockTypePtr CreateType();
@@ -50,7 +51,8 @@ private:
     bool captureStartedOnThisFb;
     ASAM::CMP::Decoder decoder;
 
-    CallsMultiMap callsMap;
+    DataPacketsPublisher dataPacketsPublisher;
+    CapturePacketsPublisher capturePacketsPublisher;
 };
 
 END_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE

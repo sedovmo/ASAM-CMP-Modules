@@ -26,7 +26,7 @@ InterfaceCommonFb::InterfaceCommonFb(const ContextPtr& ctx,
 
 FunctionBlockTypePtr InterfaceCommonFb::CreateType()
 {
-    return FunctionBlockType("asam_cmp_interface", "AsamCmpInterface", "Asam CMP Interface");
+    return FunctionBlockType("asam_cmp_interface", "AsamCmpInterface", "ASAM CMP Interface");
 }
 
 void InterfaceCommonFb::initProperties()
@@ -107,7 +107,7 @@ void InterfaceCommonFb::updatePayloadTypeInternal()
 void InterfaceCommonFb::removeStreamInternal(size_t nInd)
 {
     auto fb = functionBlocks.getItems().getItemAt(nInd);
-    Int streamId = fb.getPropertyValue("StreamId");
+    uint8_t streamId = static_cast<Int>(fb.getPropertyValue("StreamId"));
     functionBlocks.removeItem(fb);
     streamIdManager->removeId(streamId);
 }

@@ -21,9 +21,9 @@
 #include <opendaq/packet_factory.h>
 
 #include <asam_cmp_common_lib/stream_common_fb_impl.h>
-#include <asam_cmp_data_sink/calls_multi_map.h>
+#include <asam_cmp_data_sink/asam_cmp_packets_subscriber.h>
 #include <asam_cmp_data_sink/common.h>
-#include <asam_cmp_data_sink/data_handler.h>
+#include <asam_cmp_data_sink/data_packets_publisher.h>
 
 BEGIN_NAMESPACE_ASAM_CMP_DATA_SINK_MODULE
 
@@ -36,7 +36,7 @@ struct CANData
 };
 #pragma pack(pop)
 
-class StreamFb final : public asam_cmp_common_lib::StreamCommonFbImpl<IDataHandler>
+class StreamFb final : public asam_cmp_common_lib::StreamCommonFbImpl<IAsamCmpPacketsSubscriber>
 {
 private:
     using Packet = ASAM::CMP::Packet;
@@ -48,7 +48,7 @@ public:
                       const ComponentPtr& parent,
                       const StringPtr& localId,
                       const asam_cmp_common_lib::StreamCommonInit& init,
-                      CallsMultiMap& callsMap,
+                      DataPacketsPublisher& publisher,
                       const uint16_t& deviceId,
                       const uint32_t& interfaceId);
     ~StreamFb() override = default;
@@ -57,9 +57,9 @@ protected:
     // IStreamCommon
     void setPayloadType(PayloadType type) override;
 
-    // IDataHandler
-    void processData(const std::shared_ptr<Packet>& packet) override;
-    void processData(const std::vector<std::shared_ptr<Packet>>& packets) override;
+    // IAsamCmpPacketsSubscriber
+    void receive(const std::shared_ptr<Packet>& packet) override;
+    void receive(const std::vector<std::shared_ptr<Packet>>& packets) override;
 
     void updateStreamIdInternal() override;
 
@@ -84,7 +84,7 @@ private:
 private:
     const uint16_t& deviceId;
     const uint32_t& interfaceId;
-    CallsMultiMap& callsMap;
+    DataPacketsPublisher& publisher;
 
     SignalConfigPtr dataSignal;
     SignalConfigPtr domainSignal;

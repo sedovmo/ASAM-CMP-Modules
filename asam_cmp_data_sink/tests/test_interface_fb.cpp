@@ -19,7 +19,7 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", callsMultiMap);
+            Context(Scheduler(logger), logger, TypeManager(), nullptr), nullptr, "capture_module_0", publisher, capturePacketsPublisher);
 
         captureFb.getPropertyValue("AddInterface").execute();
         interfaceFb = captureFb.getFunctionBlocks().getItemAt(0);
@@ -28,12 +28,21 @@ protected:
 protected:
     FunctionBlockPtr captureFb;
     FunctionBlockPtr interfaceFb;
-    modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
+    modules::asam_cmp_data_sink_module::DataPacketsPublisher publisher;
+    modules::asam_cmp_data_sink_module::CapturePacketsPublisher capturePacketsPublisher;
 };
 
 TEST_F(InterfaceFbTest, NotNull)
 {
     ASSERT_NE(interfaceFb, nullptr);
+}
+
+TEST_F(InterfaceFbTest, FunctionBlockType)
+{
+    auto type = interfaceFb.getFunctionBlockType();
+    ASSERT_EQ(type.getId(), "asam_cmp_interface");
+    ASSERT_EQ(type.getName(), "AsamCmpInterface");
+    ASSERT_EQ(type.getDescription(), "ASAM CMP Interface");
 }
 
 TEST_F(InterfaceFbTest, CaptureModuleProperties)

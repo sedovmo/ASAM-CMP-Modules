@@ -1,7 +1,6 @@
 project(asam_cmp_common_lib LANGUAGES CXX VERSION 1.0.0)
 
-set(SRC_Cpp capture_common_fb.cpp
-            interface_common_fb.cpp
+set(SRC_Cpp interface_common_fb.cpp
             ethernet_pcpp_impl.cpp
             network_manager_fb.cpp
             unit_converter.cpp

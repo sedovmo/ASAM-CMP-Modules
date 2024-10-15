@@ -9,13 +9,13 @@ StreamFb::StreamFb(const ContextPtr& ctx,
                    const ComponentPtr& parent,
                    const StringPtr& localId,
                    const asam_cmp_common_lib::StreamCommonInit& init,
-                   CallsMultiMap& callsMap,
+                   DataPacketsPublisher& publisher,
                    const uint16_t& deviceId,
                    const uint32_t& interfaceId)
     : StreamCommonFbImpl(ctx, parent, localId, init)
     , deviceId(deviceId)
     , interfaceId(interfaceId)
-    , callsMap(callsMap)
+    , publisher(publisher)
     , updateDescriptors(init.payloadType == PayloadType::analog)
 {
     createSignals();
@@ -39,7 +39,7 @@ void StreamFb::setPayloadType(PayloadType type)
     }
 }
 
-void StreamFb::processData(const std::shared_ptr<Packet>& packet)
+void StreamFb::receive(const std::shared_ptr<Packet>& packet)
 {
     if (packet->getPayload().getType() != payloadType)
         return;
@@ -50,18 +50,18 @@ void StreamFb::processData(const std::shared_ptr<Packet>& packet)
     {
         std::vector<std::shared_ptr<Packet>> packets;
         packets.emplace_back(packet);
-        processData(packets);
+        receive(packets);
     }
 }
 
-void StreamFb::processData(const std::vector<std::shared_ptr<Packet>>& packets)
+void StreamFb::receive(const std::vector<std::shared_ptr<Packet>>& packets)
 {
     if (packets.front()->getPayload().getType() != payloadType)
         return;
 
     if (payloadType == PayloadType::analog)
     {
-        for (auto& packet: packets)
+        for (auto& packet : packets)
             processSyncData(packet);
     }
     else
@@ -77,8 +77,8 @@ void StreamFb::updateStreamIdInternal()
     if (oldStreamId == streamId)
         return;
 
-    callsMap.erase(deviceId, interfaceId, oldStreamId, this);
-    callsMap.insert(deviceId, interfaceId, streamId, this);
+    publisher.unsubscribe({deviceId, interfaceId, oldStreamId}, this);
+    publisher.subscribe({deviceId, interfaceId, streamId}, this);
 }
 
 void StreamFb::createSignals()

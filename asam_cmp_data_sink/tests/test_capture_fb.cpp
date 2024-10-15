@@ -17,11 +17,12 @@ protected:
     {
         auto logger = Logger();
         captureFb = createWithImplementation<IFunctionBlock, modules::asam_cmp_data_sink_module::CaptureFb>(
-            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0", callsMultiMap);
+            Context(Scheduler(logger), logger, nullptr, nullptr, nullptr), nullptr, "capture_module_0", publisher, capturePacketsPublisher);
     }
 
 protected:
-    modules::asam_cmp_data_sink_module::CallsMultiMap callsMultiMap;
+    modules::asam_cmp_data_sink_module::DataPacketsPublisher publisher;
+    modules::asam_cmp_data_sink_module::CapturePacketsPublisher capturePacketsPublisher;
     FunctionBlockPtr captureFb;
 };
 
@@ -30,11 +31,59 @@ TEST_F(CaptureFbTest, CreateCaptureModule)
     ASSERT_NE(captureFb, nullptr);
 }
 
+TEST_F(CaptureFbTest, FunctionBlockType)
+{
+    auto type = captureFb.getFunctionBlockType();
+    ASSERT_EQ(type.getId(), "asam_cmp_capture");
+    ASSERT_EQ(type.getName(), "AsamCmpCapture");
+    ASSERT_EQ(type.getDescription(), "ASAM CMP Capture");
+}
+
 TEST_F(CaptureFbTest, CaptureModuleProperties)
 {
     ASSERT_TRUE(captureFb.hasProperty("DeviceId"));
     ASSERT_TRUE(captureFb.hasProperty("AddInterface"));
     ASSERT_TRUE(captureFb.hasProperty("RemoveInterface"));
+    ASSERT_TRUE(captureFb.hasProperty("DeviceDescription"));
+    ASSERT_TRUE(captureFb.hasProperty("SerialNumber"));
+    ASSERT_TRUE(captureFb.hasProperty("HardwareVersion"));
+    ASSERT_TRUE(captureFb.hasProperty("SoftwareVersion"));
+    ASSERT_TRUE(captureFb.hasProperty("VendorData"));
+}
+
+TEST_F(CaptureFbTest, DefaultPropertiesValues)
+{
+    constexpr Int defaultDeviceId = 0;
+    const StringPtr defaultDefaultDeviceDescription = "";
+    const StringPtr defaultDefaultSerialNumber = "";
+    const StringPtr defaultDefaultHardwareVersion = "";
+    const StringPtr defaultDefaultSoftwareVersion = "";
+    const StringPtr defaultDefaultVendorData = "";
+
+    const Int id = captureFb.getPropertyValue("DeviceId");
+    const StringPtr deviceDescription = captureFb.getPropertyValue("DeviceDescription");
+    const StringPtr serialNumber = captureFb.getPropertyValue("SerialNumber");
+    const StringPtr hardwareVersion = captureFb.getPropertyValue("HardwareVersion");
+    const StringPtr softwareVersion = captureFb.getPropertyValue("SoftwareVersion");
+    const StringPtr vendorData = captureFb.getPropertyValue("VendorData");
+
+    ASSERT_EQ(id, defaultDeviceId);
+    ASSERT_EQ(deviceDescription, defaultDefaultDeviceDescription);
+    ASSERT_EQ(serialNumber, defaultDefaultSerialNumber);
+    ASSERT_EQ(hardwareVersion, defaultDefaultHardwareVersion);
+    ASSERT_EQ(softwareVersion, defaultDefaultSoftwareVersion);
+    ASSERT_EQ(vendorData, defaultDefaultVendorData);
+}
+
+TEST_F(CaptureFbTest, ReadOnlyProperties)
+{
+    const StringPtr newValue = "New value";
+
+    EXPECT_THROW(captureFb.setPropertyValue("DeviceDescription", newValue), daq::AccessDeniedException);
+    EXPECT_THROW(captureFb.setPropertyValue("SerialNumber", newValue), daq::AccessDeniedException);
+    EXPECT_THROW(captureFb.setPropertyValue("HardwareVersion", newValue), daq::AccessDeniedException);
+    EXPECT_THROW(captureFb.setPropertyValue("SoftwareVersion", newValue), daq::AccessDeniedException);
+    EXPECT_THROW(captureFb.setPropertyValue("VendorData", newValue), daq::AccessDeniedException);
 }
 
 TEST_F(CaptureFbTest, DeviceIdProperty)
