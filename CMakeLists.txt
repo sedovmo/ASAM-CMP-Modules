@@ -14,7 +14,7 @@ set(CMAKE_MESSAGE_CONTEXT_SHOW ON CACHE BOOL "Show CMake message context")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-include(CommonUtils)
+include(AsamCommonUtils)
 setup_repo(${REPO_OPTION_PREFIX})
 
 if (${REPO_OPTION_PREFIX}_ENABLE_EXAMPLE)
