@@ -1,4 +1,5 @@
-#include <PcapLiveDeviceList.h>
+#include <EthLayer.h>
+#include <Packet.h>
 #include <coreobjects/util.h>
 #include <opendaq/context_factory.h>
 #include <opendaq/module_manager_init.h>
@@ -16,7 +17,11 @@ int main(int argc, char** args)
 
     testing::InitGoogleTest(&argc, args);
 
-    pcpp::PcapLiveDeviceList::getInstance();
+    // To prevent memory leak error caused by the PcapPlusPlus library
+    pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("00:00:00:00:00:00"), pcpp::MacAddress("00:00:00:00:00:00"), 0);
+    pcpp::Packet newPacket;
+    newPacket.addLayer(&newEthernetLayer);
+
     testing::TestEventListeners& listeners = testing::UnitTest::GetInstance()->listeners();
     listeners.Append(new DaqMemCheckListener());
 
