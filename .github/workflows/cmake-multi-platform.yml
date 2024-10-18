@@ -4,9 +4,9 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "jira/TBBAS-1840-ci-clang" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "jira/TBBAS-1840-ci-clang" ]
 
 jobs:
   build_linux:
@@ -20,15 +20,14 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         build_type: [Release]
-        #c_compiler: [gcc, clang]
-        c_compiler: [gcc]
+        c_compiler: [gcc, clang]
         include:
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
-          # - os: ubuntu-latest
-            # c_compiler: clang
-            # cpp_compiler: clang++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
 
     steps:
     - name: Install basic dependencies
