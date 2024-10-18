@@ -17,20 +17,24 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(AsamCommonUtils)
 setup_repo(${REPO_OPTION_PREFIX})
 
-if (${REPO_OPTION_PREFIX}_ENABLE_EXAMPLE)
-        set(DAQMODULES_REF_DEVICE_MODULE ON)
-        set(DAQMODULES_REF_FB_MODULE ON)
+if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
+    enable_testing()
+endif()
 
-        add_subdirectory(asam_cmp_example)
+if (${REPO_OPTION_PREFIX}_ENABLE_EXAMPLE)
+    set(DAQMODULES_REF_DEVICE_MODULE ON)
+    set(DAQMODULES_REF_FB_MODULE ON)
+
+    add_subdirectory(asam_cmp_example)
 endif()
 
 add_subdirectory(external)
 add_subdirectory(asam_cmp_common_lib)
 
 if (${REPO_OPTION_PREFIX}_BUILD_CAPTURE_MODULE)
-        add_subdirectory(asam_cmp_capture_module)
+    add_subdirectory(asam_cmp_capture_module)
 endif()
 
 if (${REPO_OPTION_PREFIX}_BUILD_DATA_SINK)
-        add_subdirectory(asam_cmp_data_sink)
+    add_subdirectory(asam_cmp_data_sink)
 endif()
