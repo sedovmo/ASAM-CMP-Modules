@@ -95,19 +95,19 @@ void CaptureCommonFbImpl<Interfaces...>::initProperties()
                     .setMinValue(static_cast<Int>(std::numeric_limits<uint16_t>::min()))
                     .setMaxValue(static_cast<Int>(std::numeric_limits<uint16_t>::max()))
                     .build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
+    this->objPtr.addProperty(prop);
+    this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "AddInterface";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>())).setReadOnly(true).build();
-    objPtr.addProperty(prop);
-    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this] { addInterface(); }));
+    this->objPtr.addProperty(prop);
+    this->objPtr.template asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this] { addInterface(); }));
 
     propName = "RemoveInterface";
     prop = FunctionPropertyBuilder(propName, ProcedureInfo(List<IArgumentInfo>(ArgumentInfo("nInd", ctInt)))).setReadOnly(true).build();
-    objPtr.addProperty(prop);
-    objPtr.asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this](IntPtr nInd) { removeInterface(nInd); }));
+    this->objPtr.addProperty(prop);
+    this->objPtr.template asPtr<IPropertyObjectProtected>().setProtectedPropertyValue(propName, Procedure([this](IntPtr nInd) { removeInterface(nInd); }));
 }
 
 template <typename... Interfaces>
@@ -115,32 +115,32 @@ void CaptureCommonFbImpl<Interfaces...>::initDeviceInfoProperties(bool readOnly)
 {
     StringPtr propName = "DeviceDescription";
     auto prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
+    this->objPtr.addProperty(prop);
+    this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "SerialNumber";
     prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
+    this->objPtr.addProperty(prop);
+    this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "HardwareVersion";
     prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
+    this->objPtr.addProperty(prop);
+    this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "SoftwareVersion";
     prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
+    this->objPtr.addProperty(prop);
+    this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 
     propName = "VendorData";
     prop = StringPropertyBuilder(propName, "").setReadOnly(readOnly).build();
-    objPtr.addProperty(prop);
-    objPtr.getOnPropertyValueWrite(propName) +=
+    this->objPtr.addProperty(prop);
+    this->objPtr.getOnPropertyValueWrite(propName) +=
         [this](PropertyObjectPtr& obj, PropertyValueEventArgsPtr& args) { propertyChangedIfNotUpdating(); };
 }
 
@@ -153,8 +153,8 @@ FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::addInterfaceWithParams(uint
     InterfaceCommonInit init{interfaceId, &interfaceIdManager, &streamIdManager};
 
     StringPtr fbId = fmt::format("asam_cmp_interface_{}", createdInterfaces++);
-    auto newFb = createWithImplementation<IFunctionBlock, Impl>(context, functionBlocks, fbId, init, std::forward<Params>(params)...);
-    functionBlocks.addItem(newFb);
+    auto newFb = createWithImplementation<IFunctionBlock, Impl>(this->context, this->functionBlocks, fbId, init, std::forward<Params>(params)...);
+    this->functionBlocks.addItem(newFb);
     interfaceIdManager.addId(interfaceId);
 
     return newFb;
@@ -163,31 +163,31 @@ FunctionBlockPtr CaptureCommonFbImpl<Interfaces...>::addInterfaceWithParams(uint
 template <typename... Interfaces>
 void CaptureCommonFbImpl<Interfaces...>::addInterface()
 {
-    std::scoped_lock lock{sync};
+    std::scoped_lock lock{this->sync};
     addInterfaceInternal();
 }
 
 template <typename... Interfaces>
 void CaptureCommonFbImpl<Interfaces...>::removeInterface(size_t nInd)
 {
-    std::scoped_lock lock{sync};
+    std::scoped_lock lock{this->sync};
     removeInterfaceInternal(nInd);
 }
 
 template <typename... Interfaces>
 void CaptureCommonFbImpl<Interfaces...>::updateDeviceIdInternal()
 {
-    deviceId = objPtr.getPropertyValue("DeviceId");
+    deviceId = this->objPtr.getPropertyValue("DeviceId");
 }
 
 template <typename... Interfaces>
 void CaptureCommonFbImpl<Interfaces...>::updateDeviceInfoInternal()
 {
-    deviceDescription = objPtr.getPropertyValue("DeviceDescription");
-    serialNumber = objPtr.getPropertyValue("SerialNumber");
-    hardwareVersion = objPtr.getPropertyValue("HardwareVersion");
-    softwareVersion = objPtr.getPropertyValue("SoftwareVersion");
-    vendorDataAsString = objPtr.getPropertyValue("VendorData").asPtr<IString>().toStdString();
+    deviceDescription = this->objPtr.getPropertyValue("DeviceDescription");
+    serialNumber = this->objPtr.getPropertyValue("SerialNumber");
+    hardwareVersion = this->objPtr.getPropertyValue("HardwareVersion");
+    softwareVersion = this->objPtr.getPropertyValue("SoftwareVersion");
+    vendorDataAsString = this->objPtr.getPropertyValue("VendorData").template asPtr<IString>().toStdString();
     vendorData = std::vector<uint8_t>(begin(vendorDataAsString), end(vendorDataAsString));
 }
 
@@ -197,14 +197,14 @@ void CaptureCommonFbImpl<Interfaces...>::removeInterfaceInternal(size_t nInd)
     if (isUpdating)
         throw std::runtime_error("Removing interfaces is disabled during update");
 
-    interfaceIdManager.removeId(functionBlocks.getItems().getItemAt(nInd).getPropertyValue("InterfaceId"));
-    functionBlocks.removeItem(functionBlocks.getItems().getItemAt(nInd));
+    interfaceIdManager.removeId(this->functionBlocks.getItems().getItemAt(nInd).getPropertyValue("InterfaceId"));
+    this->functionBlocks.removeItem(this->functionBlocks.getItems().getItemAt(nInd));
 }
 
 template <typename... Interfaces>
 daq::ErrCode CaptureCommonFbImpl<Interfaces...>::beginUpdate()
 {
-    daq::ErrCode result = FunctionBlockImpl::beginUpdate();
+    daq::ErrCode result = FunctionBlockImpl<IFunctionBlock, Interfaces...>::beginUpdate();
     if (result == OPENDAQ_SUCCESS)
         isUpdating = true;
 
@@ -214,8 +214,8 @@ daq::ErrCode CaptureCommonFbImpl<Interfaces...>::beginUpdate()
 template <typename... Interfaces>
 inline daq::ErrCode INTERFACE_FUNC CaptureCommonFbImpl<Interfaces...>::endUpdate()
 {
-    std::scoped_lock lock{sync};
-    auto result = FunctionBlockImpl::endUpdate();
+    std::scoped_lock lock{this->sync};
+    auto result = FunctionBlockImpl<IFunctionBlock, Interfaces...>::endUpdate();
 
     if (needsPropertyChanged)
     {
@@ -240,7 +240,7 @@ void CaptureCommonFbImpl<Interfaces...>::propertyChangedIfNotUpdating()
 {
     if (!isUpdating)
     {
-        std::scoped_lock lock{sync};
+        std::scoped_lock lock{this->sync};
         propertyChanged();
     }
     else
