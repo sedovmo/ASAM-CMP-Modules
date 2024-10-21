@@ -62,7 +62,7 @@ protected:
 
         captureFb.setPropertyValue("DeviceId", deviceId);
         interfaceFb.setPropertyValue("InterfaceId", interfaceId);
-        funcBlock.setPropertyValue("StreamId", streamId);
+        funcBlock.setPropertyValue("StreamId", static_cast<Int>(streamId));
     }
 
 protected:
@@ -180,7 +180,7 @@ TEST_F(StreamFbTest, RemoveAddStream)
     interfaceFb.getPropertyValue("AddStream").execute();
     funcBlock = interfaceFb.getFunctionBlocks().getItemAt(0);
 
-    funcBlock.setPropertyValue("StreamId", streamId);
+    funcBlock.setPropertyValue("StreamId", static_cast<Int>(streamId));
     Int curStreamId = funcBlock.getPropertyValue("StreamId");
     ASSERT_EQ(curStreamId, streamId);
 }

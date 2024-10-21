@@ -90,7 +90,7 @@ void StreamFb::updateStreamIdInternal()
     else
     {
         setPropertyValueInternal(
-            String("StreamId").asPtr<IString>(true), BaseObjectPtr(streamId).asPtr<IBaseObject>(true), false, false, false);
+            String("StreamId").asPtr<IString>(true), BaseObjectPtr(static_cast<Int>(streamId)).asPtr<IBaseObject>(true), false, false, false);
     }
 
     if (oldId != streamId)

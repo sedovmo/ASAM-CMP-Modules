@@ -10,6 +10,10 @@ set(TEST_SOURCES test_app.cpp
                  test_data_packets_publisher.cpp
 )
 
+if (MSVC)
+    add_compile_options(/bigobj)
+endif()
+
 add_executable(${TEST_APP} ${TEST_SOURCES}
 )
 
