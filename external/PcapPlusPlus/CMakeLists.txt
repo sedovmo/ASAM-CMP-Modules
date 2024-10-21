@@ -20,8 +20,4 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/seladb/PcapPlusPlus.git
     GIT_TAG v24.09
 )
-FetchContent_GetProperties(PcapPlusPlus)
-if (NOT PcapPlusPlus_POPULATED)
-    FetchContent_Populate(PcapPlusPlus)
-    add_subdirectory(${pcapplusplus_SOURCE_DIR} ${pcapplusplus_BINARY_DIR})
-endif()
+FetchContent_MakeAvailable(PcapPlusPlus)
