@@ -425,7 +425,7 @@ TYPED_TEST(StreamFbAnalogPayloadTest, AnalogSignalDescriptor)
     constexpr auto domainSampleType = SampleType::UInt64;
     const auto unit = Unit("kg", -1, "", "");
     constexpr auto intSize = rawSampleType == SampleType::Int16 ? 16 : 32;
-    constexpr auto minValue = this->sampleOffset;
+    const auto minValue = this->sampleOffset;
     const auto maxValue = this->sampleScalar * pow(2, intSize) + this->sampleOffset;
 
     this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
@@ -569,8 +569,8 @@ TYPED_TEST(StreamFbAnalogPayloadTest, UnitChanged)
 
 TYPED_TEST(StreamFbAnalogPayloadTest, SampleIntervalChanged)
 {
-    constexpr auto newSampleInterval = this->sampleInterval / 2;
-    static constexpr uint64_t newDeltaT = this->timeResolution * newSampleInterval;
+    auto newSampleInterval = this->sampleInterval / 2;
+    const uint64_t newDeltaT = this->timeResolution * newSampleInterval;
 
     this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
     const auto outputSignal = this->funcBlock.getSignalsRecursive()[0];
@@ -597,12 +597,12 @@ TYPED_TEST(StreamFbAnalogPayloadTest, SampleIntervalChanged)
 
 TYPED_TEST(StreamFbAnalogPayloadTest, PostScalingChanged)
 {
-    constexpr float newSampleOffset = this->sampleOffset * 2;
-    constexpr float newSampleScalar = this->sampleScalar * 2;
+    const float newSampleOffset = this->sampleOffset * 2;
+    const float newSampleScalar = this->sampleScalar * 2;
 
     constexpr auto rawSampleType = SampleTypeFromType<TypeParam>::SampleType;
     constexpr auto intSize = rawSampleType == SampleType::Int16 ? 16 : 32;
-    constexpr auto minValue = newSampleOffset;
+    const auto minValue = newSampleOffset;
     const auto maxValue = newSampleScalar * pow(2, intSize) + newSampleOffset;
 
     this->interfaceFb.setPropertyValue("PayloadType", this->analogPayloadType);
