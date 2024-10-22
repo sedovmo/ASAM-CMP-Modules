@@ -52,16 +52,11 @@ target_include_directories(${LIB_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_
                                                $<INSTALL_INTERFACE:include>
 )
 
-set_target_properties(${LIB_NAME} PROPERTIES PUBLIC_HEADER "${SRC_PublicHeaders}")
-
 opendaq_set_module_properties(${LIB_NAME} ${PROJECT_VERSION_MAJOR})
 create_version_header(${LIB_NAME})
 
 install(TARGETS ${LIB_NAME}
-        RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-        LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-        ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-        PUBLIC_HEADER DESTINATION include/${TARGET_FOLDER_NAME}
+        COMPONENT RUNTIME
 )
 
 if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
@@ -98,23 +93,14 @@ if (${REPO_OPTION_PREFIX}_ENABLE_TESTS)
     )
 
     target_link_libraries(${PROJECT_NAME}_lib PUBLIC daq::opendaq
-                                                Pcap++
-                                                asam_cmp
-                                                asam_cmp_common_lib
+                                                     Pcap++
+                                                     asam_cmp
+                                                     asam_cmp_common_lib
     )
 
     target_include_directories(${PROJECT_NAME}_lib PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
-                                                        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../include>
-                                                        $<INSTALL_INTERFACE:include>
-    )
-
-    set_target_properties(${PROJECT_NAME}_lib PROPERTIES PUBLIC_HEADER "${SRC_PublicHeaders}")
-
-    install(TARGETS ${PROJECT_NAME}_lib
-            RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-            LIBRARY DESTINATION ${INSTALL_LIB_DIR}
-            ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-            PUBLIC_HEADER DESTINATION include/${TARGET_FOLDER_NAME}
+                                                          $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../include>
+                                                          $<INSTALL_INTERFACE:include>
     )
 
 endif()
