@@ -4,6 +4,14 @@ set(REPO_OPTION_PREFIX ASAM_CMP)
 
 project(${REPO_NAME} VERSION 1.0.0)
 
+if (POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
+
+if (POLICY CMP0077)
+    cmake_policy(SET CMP0077 NEW)
+endif()
+
 option(${REPO_OPTION_PREFIX}_BUILD_CAPTURE_MODULE "Enable ASAM CMP Capture Module" ON)
 option(${REPO_OPTION_PREFIX}_BUILD_DATA_SINK "Enable ASAM CMP Data Sink" ON)
 option(${REPO_OPTION_PREFIX}_ENABLE_EXAMPLE "Enable Example" ON)
