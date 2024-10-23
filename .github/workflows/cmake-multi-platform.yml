@@ -4,9 +4,9 @@ name: CMake on multiple platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "other/fmt" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "other/fmt" ]
     
 env:
     package_path: ${{ github.workspace }}/build/package/
@@ -176,3 +176,56 @@ jobs:
         name: asam-cmp-${{ matrix.os }}-${{ matrix.c_compiler }}
         path: ${{ env.package_path }}
         retention-days: 7
+        
+  package_linux_wheels:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.name }}
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.name }}
+      cancel-in-progress: true
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: manylinux2014 gcc Release
+            image: quay.io/pypa/manylinux2014_x86_64
+            cmake_generator: Ninja
+            cmake_build_type: Release
+            additional_packages:
+            cc: gcc
+            cxx: g++
+            cpack: ZIP
+
+    container:
+      image: ${{ matrix.image }}
+      env:
+        TZ: Europe/Berlin
+        CC: ${{ matrix.cc }}
+        CXX: ${{ matrix.cxx }}
+
+    steps:
+      - name: Install basic dependencies
+        run: |
+          yum update -y
+          yum install -y git
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install build dependencies
+        run: |
+          yum install -y ${{ matrix.additional_packages }} \
+              ninja-build \
+              mono-core \
+              freetype-devel libudev-devel libX11-devel libXcursor-devel libXrandr-devel
+
+      - name: Create build dir
+        run: mkdir build
+
+      - name: Configure and build Python Wheels
+        working-directory: build
+        run: |
+          cmake -G "${{ matrix.cmake_generator }}" --preset package -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} -DCI_GIT_BRANCH=${{ github.ref }} -DOPENDAQ_PYTHON_VERSION=3.10 ..
+          cmake --build .
