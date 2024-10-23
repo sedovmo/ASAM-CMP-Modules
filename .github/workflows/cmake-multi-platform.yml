@@ -209,7 +209,7 @@ jobs:
       - name: Install basic dependencies
         run: |
           yum update -y
-          yum install -y git libc6 libstdc++6
+          yum install -y git openssh-clients
 
       - name: Install build dependencies
         run: |
