@@ -209,7 +209,14 @@ jobs:
       - name: Install basic dependencies
         run: |
           yum update -y
-          yum install -y git
+          yum install -y git libc6 libstdc++6
+
+      - name: Install build dependencies
+        run: |
+          yum install -y ${{ matrix.additional_packages }} \
+              ninja-build \
+              mono-core \
+              freetype-devel libudev-devel libX11-devel libXcursor-devel libXrandr-devel
 
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
@@ -219,13 +226,6 @@ jobs:
           if_key_exists: fail # replace / ignore / fail; optional (defaults to fail)
         
       - uses: actions/checkout@v4
-
-      - name: Install build dependencies
-        run: |
-          yum install -y ${{ matrix.additional_packages }} \
-              ninja-build \
-              mono-core \
-              freetype-devel libudev-devel libX11-devel libXcursor-devel libXrandr-devel
 
       - name: Create build dir
         run: mkdir build
