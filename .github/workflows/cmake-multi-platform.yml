@@ -10,6 +10,7 @@ on:
     
 env:
   package_path: ${{ github.workspace }}/build/package/
+
   cmake_preset: package
   build_path: ${{ github.workspace }}/build
 #  package_path: ${{ github.workspace }}/build/_packages
@@ -76,5 +77,5 @@ jobs:
       - name: Configure and build Python Wheels
         working-directory: build
         run: |
-          cmake -G "${{ matrix.cmake_generator }}" --preset package -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} -DCI_GIT_BRANCH=${{ github.ref }} -DOPENDAQ_PYTHON_VERSION=3.10 ..
+          cmake -G "${{ matrix.cmake_generator }}" -DOPENDAQ_ENABLE_TESTS=OFF -DOPENDAQ_GENERATE_PYTHON_BINDINGS=ON -DDAQMODULES_REF_DEVICE_MODULE=ON -DDAQMODULES_REF_FB_MODULE=ON -DDAQMODULES_AUDIO_DEVICE_MODULE=ON -DDAQMODULES_OPENDAQ_CLIENT_MODULE=ON -DDAQMODULES_OPENDAQ_SERVER_MODULE=ON -DOPENDAQ_ENABLE_OPCUA=ON -DOPENDAQ_ENABLE_WEBSOCKET_STREAMING=ON -DOPENDAQ_ENABLE_NATIVE_STREAMING=ON -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} -DCI_GIT_BRANCH=${{ github.ref }} -DOPENDAQ_PYTHON_VERSION=3.10 ..
           cmake --build .
