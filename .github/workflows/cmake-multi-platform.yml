@@ -59,7 +59,7 @@ jobs:
       - name: Install basic dependencies
         run: |
           yum update -y
-          yum install -y git
+          yum install -y git libpcap-dev
 
       - name: Checkout
         uses: actions/checkout@v3
