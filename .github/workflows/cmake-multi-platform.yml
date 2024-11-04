@@ -40,7 +40,7 @@ jobs:
       matrix:
         include:
           - name: manylinux2014 gcc Release
-            image: quay.io/pypa/manylinux_2_28_x86_64
+            image: quay.io/pypa/manylinux2014_x86_64
             cmake_generator: Ninja
             cmake_build_type: Release
             additional_packages:
@@ -59,7 +59,7 @@ jobs:
       - name: Install basic dependencies
         run: |
           yum update -y
-          yum install -y git libpcap-dev
+          yum install -y git
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -69,7 +69,7 @@ jobs:
           yum install -y ${{ matrix.additional_packages }} \
               ninja-build \
               mono-core \
-              freetype-devel libudev-devel libX11-devel libXcursor-devel libXrandr-devel
+              freetype-devel libudev-devel libX11-devel libXcursor-devel libXrandr-devel libpcap-dev
         
       - name: Create build dir
         run: mkdir build
