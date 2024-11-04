@@ -69,7 +69,12 @@ jobs:
           yum install -y ${{ matrix.additional_packages }} \
               ninja-build \
               mono-core \
-              freetype-devel libudev-devel libX11-devel libXcursor-devel libXrandr-devel libpcap-dev
+              freetype-devel \
+              libudev-devel \
+              libX11-devel \
+              libXcursor-devel \
+              libXrandr-devel \
+              libpcap-devel
         
       - name: Create build dir
         run: mkdir build
