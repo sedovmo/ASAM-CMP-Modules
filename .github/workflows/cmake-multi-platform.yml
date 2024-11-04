@@ -82,17 +82,17 @@ jobs:
       - name: Configure and build Python Wheels
         working-directory: build
         run: |
-          cmake -G "${{ matrix.cmake_generator }}" -DOPENDAQ_ENABLE_TESTS=OFF -DOPENDAQ_GENERATE_PYTHON_BINDINGS=ON -DDAQMODULES_REF_DEVICE_MODULE=ON -DDAQMODULES_REF_FB_MODULE=ON -DDAQMODULES_AUDIO_DEVICE_MODULE=ON -DDAQMODULES_OPENDAQ_CLIENT_MODULE=ON -DDAQMODULES_OPENDAQ_SERVER_MODULE=ON -DOPENDAQ_ENABLE_OPCUA=ON -DOPENDAQ_ENABLE_WEBSOCKET_STREAMING=ON -DOPENDAQ_ENABLE_NATIVE_STREAMING=ON -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} -DCI_GIT_BRANCH=${{ github.ref }} -DOPENDAQ_PYTHON_VERSION=3.10 -DASAM_CMP_ENABLE_TESTS=OFF -DASAM_CMP_ENABLE_EXAMPLE=OFF ..
+          cmake -G "${{ matrix.cmake_generator }}" -DOPENDAQ_ENABLE_TESTS=OFF -DOPENDAQ_GENERATE_PYTHON_BINDINGS=ON -DDAQMODULES_REF_DEVICE_MODULE=ON -DDAQMODULES_REF_FB_MODULE=ON -DDAQMODULES_AUDIO_DEVICE_MODULE=ON -DDAQMODULES_OPENDAQ_CLIENT_MODULE=ON -DDAQMODULES_OPENDAQ_SERVER_MODULE=ON -DOPENDAQ_ENABLE_OPCUA=ON -DOPENDAQ_ENABLE_WEBSOCKET_STREAMING=ON -DOPENDAQ_ENABLE_NATIVE_STREAMING=ON -DCMAKE_BUILD_TYPE=${{ matrix.cmake_build_type }} -DCI_GIT_BRANCH=${{ github.ref }} -DOPENDAQ_PYTHON_VERSION=3.10 -DASAM_CMP_ENABLE_TESTS=OFF -DASAM_CMP_ENABLE_EXAMPLE=OFF -DCPACK_GENERATOR=${{ matrix.cpack }} ..
           cmake --build .
 
       - name: Package
         if: always()
-        working-directory: ${{ steps.strings.outputs.build-output-dir }}
-        run: cpack -C ${{ matrix.cmake_build_type }}
+        working-directory: build
+        run: cpack -C ${{ matrix.cmake_build_type }} -G ${{ matrix.cpack }}
 
       - name: Upload binaries
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: asam-cmp-manylinux2014-gcc
           path: ${{ env.package_path }}
