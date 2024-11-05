@@ -92,7 +92,7 @@ jobs:
 
       - name: Upload binaries
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: asam-cmp-manylinux2014-gcc
           path: ${{ env.package_path }}
