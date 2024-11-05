@@ -62,7 +62,7 @@ jobs:
           yum install -y git
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         
       - name: Install build dependencies
         run: |
